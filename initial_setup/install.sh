@@ -5,4 +5,4 @@ apt-get update && apt-get install pip
 
 
 #install the requirements.txt file
-pip install -r requirements.txt
+apt install -r requirements.txt
