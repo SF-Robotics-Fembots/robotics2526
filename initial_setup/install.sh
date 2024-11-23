@@ -5,4 +5,4 @@ apt-get update && apt-get install pip
 
 
 #install the requirements.txt file
-python3 -m pip install -r requirements.txt
+/home/geneseas/robotics2425/venv/bin/python3 -m /home/geneseas/robotics2425/venv/bin/pip install -r requirements.txt
