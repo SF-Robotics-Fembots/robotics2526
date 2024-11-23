@@ -6,13 +6,13 @@ import threading
 
 #import the threaded files
 import joyServer
-import pilotInverseServer
+import piServer
 
 global ip_server
 ip_server = "192.168.1.100"
 
 joystickCode = threading.Thread(target=joyServer.main, args = (ip_server,))
-inverseCode = threading.Thread(target=pilotInverseServer.main, args = (ip_server,))
+inverseCode = threading.Thread(target=piServer.main, args = (ip_server,))
 
 
 
