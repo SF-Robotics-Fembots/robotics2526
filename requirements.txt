@@ -12,8 +12,6 @@ Adafruit-PlatformDetect==3.56.0
 Adafruit-PureIO==1.1.11
 board==1.0
 colorzero==2.0
-gpio==1.0.0
-gpiozero==2.0
 hidapi==0.14.0
 imutils==0.5.4
 lgpio==0.0.0.2
