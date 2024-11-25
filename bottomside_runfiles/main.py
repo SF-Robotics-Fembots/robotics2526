@@ -24,7 +24,7 @@ global ip_server
 ip_server = "192.168.1.100"
     
 
-thrusterCode = threading.Thread(target=thrusters2324.main, args = (ip_server,))
+thrusterCode = threading.Thread(target=thrusters.main, args = (ip_server,))
 
 thrusterCode.start()
 
