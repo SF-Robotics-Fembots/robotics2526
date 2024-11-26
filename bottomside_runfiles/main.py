@@ -1,4 +1,3 @@
-import lgpio
 import pygame
 import board
 import busio
