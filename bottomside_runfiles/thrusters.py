@@ -30,7 +30,7 @@ def main(ip_server):
 	thrusterChannel1 = shield.channels[15]
 	thrusterChannel2 = shield.channels[0]
 	thrusterChannel3 = shield.channels[14]
-	thrusterChannel4 = shield.channels[1] #changed from 3, 4, 5
+	thrusterChannel4 = shield.channels[1] 
 	thrusterChannel5 = shield.channels[2]
 	thrusterChannel6 = shield.channels[13]
 	thrusterChannel1.duty_cycle = 0x2666
