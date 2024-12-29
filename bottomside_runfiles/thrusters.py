@@ -316,7 +316,7 @@ def main(ip_server):
 						#if power is exceeded, then values are made smaller in line 339
 
 			#print("third print")
-			debug_l2 = 1
+			#debug_l2 = 1
 			if debug_l2: print(powerThrusterVals)
 
 			throttlePW = int(powerThrusterVals[0]/10000*65536)
