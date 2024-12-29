@@ -12,9 +12,9 @@ def main(ip_server):
 
 	#setting up the median of the 'off' values for the thrusters
 	horiz_off_value = 1500
-	horiz_thrust_offset = 60
-	vert_off_value = 1484
-	vert_thrust_offset = 25
+	horiz_thrust_offset = 0
+	vert_off_value = 1500
+	vert_thrust_offset = 0
 
 	#debug! make more laters
 	debug_l2 = 0
@@ -316,6 +316,7 @@ def main(ip_server):
 						#if power is exceeded, then values are made smaller in line 339
 
 			#print("third print")
+			debug_l2 = 1
 			if debug_l2: print(powerThrusterVals)
 
 			throttlePW = int(powerThrusterVals[0]/10000*65536)
