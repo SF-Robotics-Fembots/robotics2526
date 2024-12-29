@@ -40,7 +40,7 @@ def main(ip_server):
 	thrusterChannel1.duty_cycle = throttlePW
 	time.sleep(0)
 
-	throttle_in = 1480
+	throttle_in = 1500
 	throttlePW = int(throttle_in/10000*65536)
 	thrusterChannel1.duty_cycle = throttlePW
 	time.sleep(0)
@@ -50,7 +50,7 @@ def main(ip_server):
 	thrusterChannel2.duty_cycle = throttlePW
 	time.sleep(0)
 
-	throttle_in = 1480
+	throttle_in = 1500
 	throttlePW = int(throttle_in/10000*65536)
 	thrusterChannel2.duty_cycle = throttlePW
 	time.sleep(0)
@@ -60,7 +60,7 @@ def main(ip_server):
 	thrusterChannel3.duty_cycle = throttlePW
 	time.sleep(0 )
 
-	throttle_in = 1480
+	throttle_in = 1500
 	throttlePW = int(throttle_in/10000*65536)
 	thrusterChannel3.duty_cycle = throttlePW
 	time.sleep(0)
@@ -70,7 +70,7 @@ def main(ip_server):
 	thrusterChannel4.duty_cycle = throttlePW
 	time.sleep(0)
 
-	throttle_in = 1480
+	throttle_in = 1500
 	throttlePW = int(throttle_in/10000*65536)
 	thrusterChannel4.duty_cycle = throttlePW
 	time.sleep(0)
@@ -80,7 +80,7 @@ def main(ip_server):
 	thrusterChannel5.duty_cycle = throttlePW
 	time.sleep(0)
 
-	throttle_in = 1480
+	throttle_in = 1500
 	throttlePW = int(throttle_in/10000*65536)
 	thrusterChannel5.duty_cycle = throttlePW
 	time.sleep(0)
@@ -90,7 +90,7 @@ def main(ip_server):
 	thrusterChannel6.duty_cycle = throttlePW
 	time.sleep(0)
 
-	throttle_in = 1480
+	throttle_in = 1500
 	throttlePW = int(throttle_in/10000*65536)
 	thrusterChannel6.duty_cycle = throttlePW
 	time.sleep(0)
