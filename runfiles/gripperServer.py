@@ -1,0 +1,71 @@
+#library time!
+import threading
+import socket, hid, json
+import time, pynput, keyboard
+from pynput.keyboard import Key, Listener #pynput is a keyboard library that will read the key press
+import pickle #idk what this does but it likes to dill the json!
+
+#set the port to use in threading
+port = 40000
+ip_address = "127.0.0.1" # 192.168.1.100
+front = 1
+changed = 1
+
+#list the input as a keyboard press
+def on_release(key):
+    global changed
+    global front #the value as global so that we can use it outside of the function
+    if key == Key.tab:
+        prev_front = front #set the previous front value to front; will be used to compare changes
+
+        #check if the value changed
+        if front == 1: front = 0
+        else: front = 1
+
+        gripper_vals = {
+            "front" : front
+        }
+        #get the message
+        message = json.dumps(gripper_vals)
+        message = message.encode()
+
+        #check if changed
+        if prev_front != front:
+            #client_connected.send(message) #sends through the socket connection
+            print(message)
+            client_connected.send(message)
+
+
+    #put a sleep in so the speed doesn't break the universe
+    time.sleep(0.1)
+        
+#write the listener
+def on_press(key):
+    if key == Key.esc: return False
+
+
+#main function
+def main():
+    
+    #begin the serversocket
+    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server_socket.bind((ip_address, port))
+    server_socket.listen(1)
+    print("socket listening!")
+    global client_connected
+
+    #accept the client address
+    (client_connected, client_address) = server_socket.accept()
+   
+    #start the listener
+    with Listener(
+        on_press=on_press,
+        on_release=on_release) as listener:
+        listener.join()
+
+        
+
+
+
+#run the function
+main()
