@@ -12,9 +12,9 @@ def main(ip_server):
 
 	#setting up the median of the 'off' values for the thrusters
 	horiz_off_value = 1500
-	horiz_thrust_offset = 60
-	vert_off_value = 1484
-	vert_thrust_offset = 25
+	horiz_thrust_offset = 0
+	vert_off_value = 1500
+	vert_thrust_offset = 0
 
 	#debug! make more laters
 	debug_l2 = 0
@@ -25,14 +25,14 @@ def main(ip_server):
 	i2c = busio.I2C(board.SCL, board.SDA)
 	shield = adafruit_pca9685.PCA9685(i2c)
 	kit = ServoKit(channels=16)
-	shield.frequency = 96
+	shield.frequency = 100
 
-	thrusterChannel1 = shield.channels[14]
-	thrusterChannel2 = shield.channels[15]
-	thrusterChannel3 = shield.channels[2]
-	thrusterChannel4 = shield.channels[13] #changed from 3, 4, 5
-	thrusterChannel5 = shield.channels[0]
-	thrusterChannel6 = shield.channels[1]
+	thrusterChannel1 = shield.channels[14] #15
+	thrusterChannel2 = shield.channels[2] #0
+	thrusterChannel3 = shield.channels[15] #14
+	thrusterChannel4 = shield.channels[0] #2
+	thrusterChannel5 = shield.channels[13] #1
+	thrusterChannel6 = shield.channels[1] #13
 	thrusterChannel1.duty_cycle = 0x2666
 
 	throttle_in = 2200
@@ -40,7 +40,7 @@ def main(ip_server):
 	thrusterChannel1.duty_cycle = throttlePW
 	time.sleep(0)
 
-	throttle_in = 1480
+	throttle_in = 1500
 	throttlePW = int(throttle_in/10000*65536)
 	thrusterChannel1.duty_cycle = throttlePW
 	time.sleep(0)
@@ -50,7 +50,7 @@ def main(ip_server):
 	thrusterChannel2.duty_cycle = throttlePW
 	time.sleep(0)
 
-	throttle_in = 1480
+	throttle_in = 1500
 	throttlePW = int(throttle_in/10000*65536)
 	thrusterChannel2.duty_cycle = throttlePW
 	time.sleep(0)
@@ -60,7 +60,7 @@ def main(ip_server):
 	thrusterChannel3.duty_cycle = throttlePW
 	time.sleep(0 )
 
-	throttle_in = 1480
+	throttle_in = 1500
 	throttlePW = int(throttle_in/10000*65536)
 	thrusterChannel3.duty_cycle = throttlePW
 	time.sleep(0)
@@ -70,7 +70,7 @@ def main(ip_server):
 	thrusterChannel4.duty_cycle = throttlePW
 	time.sleep(0)
 
-	throttle_in = 1480
+	throttle_in = 1500
 	throttlePW = int(throttle_in/10000*65536)
 	thrusterChannel4.duty_cycle = throttlePW
 	time.sleep(0)
@@ -80,7 +80,7 @@ def main(ip_server):
 	thrusterChannel5.duty_cycle = throttlePW
 	time.sleep(0)
 
-	throttle_in = 1480
+	throttle_in = 1500
 	throttlePW = int(throttle_in/10000*65536)
 	thrusterChannel5.duty_cycle = throttlePW
 	time.sleep(0)
@@ -90,7 +90,7 @@ def main(ip_server):
 	thrusterChannel6.duty_cycle = throttlePW
 	time.sleep(0)
 
-	throttle_in = 1480
+	throttle_in = 1500
 	throttlePW = int(throttle_in/10000*65536)
 	thrusterChannel6.duty_cycle = throttlePW
 	time.sleep(0)
@@ -246,8 +246,8 @@ def main(ip_server):
 				#goes through code two times
 				oldVertThrusterVals[vNum] = int((calcVertical(v_speed, vNum, vDirArray)))
 
-			clockArray = [-1, -1, 1, 1]
-			clockVertArray = [-1, 1]
+			clockArray = [1, 1, 1, -1]
+			clockVertArray = [1, 1]
 
 			thrusterVals = [0, 0, 0, 0]
 			vertThrusterVals = [0, 0]
@@ -316,6 +316,7 @@ def main(ip_server):
 						#if power is exceeded, then values are made smaller in line 339
 
 			#print("third print")
+			#debug_l2 = 1
 			if debug_l2: print(powerThrusterVals)
 
 			throttlePW = int(powerThrusterVals[0]/10000*65536)
