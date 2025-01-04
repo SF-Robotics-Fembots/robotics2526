@@ -7,7 +7,7 @@ import pickle #idk what this does but it likes to dill the json!
 
 #set the port to use in threading
 port = 40000
-ip_address = "127.0.0.1" # 192.168.1.100
+#ip_address = "127.0.0.1" # 192.168.1.100
 front = 1
 changed = 1
 
@@ -45,7 +45,7 @@ def on_press(key):
 
 
 #main function
-def main():
+def main(ip_address):
     
     #begin the serversocket
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
