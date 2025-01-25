@@ -7,8 +7,8 @@ import socket, json
 ip_address = "192.168.1.100"
 port = 40000
 #gripper gpos
-front_gripper = 20
-side_gripper = 21
+front_gripper = 21
+side_gripper = 20
 
 def main(ip_address):
     #client setup shenanigans
