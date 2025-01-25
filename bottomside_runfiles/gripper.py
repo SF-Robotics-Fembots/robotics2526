@@ -1,5 +1,5 @@
 import time, lgpio, gpiod
-from gpiod import Direction, Value
+from gpiod.line import Direction, Value
 import socket, json
 
 #variables
