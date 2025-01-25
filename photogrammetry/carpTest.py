@@ -41,7 +41,7 @@ class TableWidgetDemo(QMainWindow):
       self.setCentralWidget(container)
 
    def convert_table_data_array(self):
-         #global np_array
+         global np_array
          def get_column_values(self, column):
             column_val = []
             for row in range(self.table_widget.rowCount()):
@@ -57,13 +57,40 @@ class TableWidgetDemo(QMainWindow):
          np_array = np.array([self.column_data1, self.column_data2, self.column_data3, self.column_data4, self.column_data5])
          print(np_array)
          return np_array
+         #return self.column_data1
+      
+
+   def changeRegionColor(self):
+      region1 = np_array[0]
+      region2 = np_array[1]
+
+      if 'y' in region1:
+         print(np.where(region1 == 'y'))
       
    def update_year(self):
       global text
       self.label.configure(text=self.years[self.text])
       self.text = (self.text + 1) % len(self.years)
       self.parent.after(1000, self.update_year)
-      
+
+      #Update region carp presence
+
+      #2016
+      # if self.text == 1:
+      #    if 'y' in np_array[0]:
+      #       print(np.where(np_array[0] == 'y'))
+      #    if 'y' in np_array[1]:
+      #       print(np.where(np_array[1] == 'y'))
+      #    if 'y' in np_array[2]:
+      #       print(np.where(np_array[2] == 'y'))
+      #    if 'y' in np_array[3]:
+      #       print(np.where(np_array[3] == 'y'))
+      #    if 'y' in np_array[4]:
+      #       print(np.where(np_array[4] == 'y'))
+
+   # def print_data(self):
+   #    if self.text == 1:
+   #       print("Its 2016")
 
    def animate(self):
       self.parent = tk.Tk()
@@ -79,9 +106,8 @@ class TableWidgetDemo(QMainWindow):
       self.label = tk.Label(self.parent, text=self.years[0])
       self.label.pack()
       self.update_year()
-
-      if self.text == self.years[0]:
-         print(self.column_data1)
+      self.changeRegionColor()
+      #self.print_data()
 
       #image
       self.image_label.pack()
