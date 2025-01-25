@@ -3,9 +3,9 @@ import cv2
 import numpy as np
 import time
 
-cam = cv2.VideoCapture(1)
-width = int(cam.get(3))
-height = int(cam.get(4))
+cam = cv2.VideoCapture(0)
+#width = int(cam.get(3))
+#height = int(cam.get(4))
 resolution = (640, 480)
 fps = 40
 
