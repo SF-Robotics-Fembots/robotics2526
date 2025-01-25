@@ -11,24 +11,34 @@ front_gripper = 20
 side_gripper = 21
 
 def main(ip_address):
-    #gpo setup
-    chip = gpiod.Chip('gpiochip4')
-    line = chip.get_line(front_gripper) #uses lines to reference the gpios
-    line.request(consumer="LED", type=gpiod.LINE_REQ_DIR_OUT) #sets to output
-
+    #client setup shenanigans
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client_socket.connect((ip_address, port))
     print("client connected!")
 
-    while True: 
-        #print("client connected!")
-        data = client_socket.recv(1024)
-        data = data.decode()
-        print(data)
-        database = json.loads(data)
 
-        #write to the gripper
-        line.set_value(database["front"])
+    #gpo setup
+    with gpiod.request_lines("/dev/gpiochip4", consumer="LED", config={
+        front_gripper: gpiod.LineSettings(
+            direction=Direction.OUTPUT, output_value=Value.INACTIVE
+        )
+    },) as request:
+            while True: 
+                #print("client connected!")
+                data = client_socket.recv(1024)
+                data = data.decode()
+                print(data)
+                database = json.loads(data)
+
+                #write to the gripper
+                if(database["front"] == 1):
+                     request.set_value(front_gripper, Value.ACTIVE)
+                elif(database["front"] == 0):
+                     request.set_value(front_gripper, Value.INACTIVE)
+
+  
+
+    
 
         
 
