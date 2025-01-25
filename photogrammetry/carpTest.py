@@ -1,11 +1,23 @@
 import sys
 from PyQt5.QtWidgets import QApplication, QMainWindow, QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget, QPushButton
+import numpy as np
+from matplotlib.pyplot import figure
+import matplotlib.pyplot as plt
+from matplotlib import animation
+import tkinter
+from tkinter import *
+from PIL import Image, ImageTk
+import tkinter as tk 
+from tkinter import ttk 
+from tkinter import filedialog as fd
+from tkinter import PhotoImage
+import time
 
 class TableWidgetDemo(QMainWindow):
    #self.table_widget=QTableWidget()
    def __init__(self):
       super().__init__()
-      self.setWindowTitle("QTableWidget User Input Example")
+      self.setWindowTitle("Fish Modeling")
       self.setGeometry(150, 150, 700, 400)
 
       self.table_widget = QTableWidget()
@@ -15,37 +27,21 @@ class TableWidgetDemo(QMainWindow):
 
       # Add a button to retrieve data
       self.button = QPushButton("Get Data")
+      self.button2 = QPushButton("Animate")
       self.button.clicked.connect(self.convert_table_data_array)
+      self.button2.clicked.connect(self.animate)
 
       layout = QVBoxLayout()
       layout.addWidget(self.table_widget)
       layout.addWidget(self.button)
+      layout.addWidget(self.button2)
 
       container = QWidget()
       container.setLayout(layout)
       self.setCentralWidget(container)
 
-   # def get_table_data(self):
-   #    data = []
-   #    for row in range(self.table_widget.rowCount()):
-   #       for column in range(self.table_widget.columnCount()):
-   #          item = self.table_widget.item(row, column)
-   #          text = item.text() if item is not None else ""
-   #          if item:
-   #             #print(f"Row {row}, Column {column}: {item.text()}")
-   #             data.append(text)
-   #             print(data)
-   #          else:
-   #             print(f"Row {row}, Column {column}: Empty")
-   # def get_column_values(self, column):
-   #    column_val = []
-   #    for row in range(self.table_widget.rowCount()):
-   #       item = self.table_wdiget.item(row,column)
-   #       if item is not None:
-   #          column_val.append(item.text())
-   #    return column_val
-
    def convert_table_data_array(self):
+         #global np_array
          def get_column_values(self, column):
             column_val = []
             for row in range(self.table_widget.rowCount()):
@@ -53,16 +49,44 @@ class TableWidgetDemo(QMainWindow):
                if item is not None:
                   column_val.append(item.text())
             return column_val
-         column_data1 = get_column_values(self, 1)
-         column_data2 = get_column_values(self, 2)
-         column_data3 = get_column_values(self, 3)
-         column_data4 = get_column_values(self, 4)
-         column_data5 = get_column_values(self, 5)
-         print("Region 1: ", column_data1,
-               "Region 2: ", column_data2,
-               "Region 3: ", column_data3,
-               "Region 4: ", column_data4,
-               "Region 5: ", column_data5)
+         self.column_data1 = get_column_values(self, 1)
+         self.column_data2 = get_column_values(self, 2)
+         self.column_data3 = get_column_values(self, 3)
+         self.column_data4 = get_column_values(self, 4)
+         self.column_data5 = get_column_values(self, 5)
+         np_array = np.array([self.column_data1, self.column_data2, self.column_data3, self.column_data4, self.column_data5])
+         print(np_array)
+         return np_array
+      
+   def update_year(self):
+      global text
+      self.label.configure(text=self.years[self.text])
+      self.text = (self.text + 1) % len(self.years)
+      self.parent.after(1000, self.update_year)
+      
+
+   def animate(self):
+      self.parent = tk.Tk()
+      self.parent.title("Pls work")
+
+      #open image
+      self.image = PhotoImage(file="C:/Users/rosar/Pictures/Screenshots/waterRegioncarp.png")
+      self.image_label = tk.Label(self.parent, image=self.image)
+
+      #changing year
+      self.years = [2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025]
+      self.text = 0
+      self.label = tk.Label(self.parent, text=self.years[0])
+      self.label.pack()
+      self.update_year()
+
+      if self.text == self.years[0]:
+         print(self.column_data1)
+
+      #image
+      self.image_label.pack()
+      self.parent.mainloop()
+      
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
