@@ -8,15 +8,11 @@ import pyscreeze
 import keyboard
 import threading
 
-'''
--> crop screenshots
-'''
-
 width, height = 1300, 1100
 
 #camera 1
 url1 = 0
-cam1 = cv2.VideoCapture('http://192.168.1.99:8080/stream')
+cam1 = cv2.VideoCapture(1)
 cam1.set(cv2.CAP_PROP_FRAME_WIDTH, width)
 cam1.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
 
@@ -60,7 +56,7 @@ def new_window():
 #runs first cam stream
 def open_camera():
     #read VideoCapture
-    print("getting frame 1")
+    #print("getting frame 1")
     ret, frame1 = cam1.read()
 
     #updates image settings
@@ -76,7 +72,7 @@ def open_camera():
 #runs second cam stream
 def open_camera2():
     #read VideoCapture
-    print("getting frame 2")
+    #print("getting frame 2")
     ret2, frame2 = cam2.read()
 
     #updates image settings
@@ -91,30 +87,43 @@ def open_camera2():
 
 #screenshots frames when ready
 def screenshot():
+    counter = 0
     while True:
         #print(keyboard.read_key()) ###double checks if keyboard reading works
-
         #use 'p' to take screenshot
         if keyboard.read_key() == "p":
             #finds window that needs screenshot
             windowTop = gw.getWindowsWithTitle('top photosphere')[0]
             windowBottom = gw.getWindowsWithTitle('bottom photosphere')[0]
 
+            counter = counter + 1
             #takes screenshot, saves, and displays
             if windowTop and windowBottom:
                 frameTop = pyscreeze.screenshot(region=windowTop.box)
-                frameTop.save('C:/Users/alyss/OneDrive/Desktop/videoframes/savedTop.png')
-                #frameTop.show('C:/Users/alyss/OneDrive/Desktop/videoframes/savedTop.png')
-                im = Image.open(r"C:/Users/alyss/OneDrive/Desktop/videoframes/savedTop.png")
-                left = 2
-                top = 5
-                right = 2
-                bottom = 2
-                im1 = im.crop((left, top, right, bottom))
-                im1.save('C:/Users/alyss/OneDrive/Desktop/videoframes/cropped.png')
-                im1.show('C:/Users/alyss/OneDrive/Desktop/videoframes/cropped.png')
+                #frameTop.show()
+                #print(frameTop.size) #gets pizel size if the cam we use changes perchance
+                topleft = 20
+                toptop = 62
+                topright = 1287
+                topbottom = 1081
+                frameTop = frameTop.crop((topleft, toptop, topright, topbottom))
+                frameTop.save('C:/Users/alyss/OneDrive/Desktop/videoframes/savedTop' + str(counter) + '.png')
+                frameTop.show('C:/Users/alyss/OneDrive/Desktop/videoframes/savedTop' + str(counter) + '.png')
                 print("showing")
 
+                frameBottom = pyscreeze.screenshot(region=windowBottom.box)
+                #frameBottom.show()
+                #print(frameTop.size)
+                bottomleft = 20
+                bottomtop = 64
+                bottomright = 1290
+                bottombottom = 1082
+                frameBottom = frameBottom.crop((bottomleft, bottomtop, bottomright, bottombottom))
+                frameBottom.save('C:/Users/alyss/OneDrive/Desktop/videoframes/savedBottom' + str(counter) + '.png')
+                frameBottom.show('C:/Users/alyss/OneDrive/Desktop/videoframes/savedBottom' + str(counter) + '.png')
+                print("showing")
+
+                print(counter)
                 #frameBottom = pyscreeze.screenshot(region=windowBottom.box)
                 #frameBottom.save('C:/Users/alyss/OneDrive/Desktop/videoframes/savedBottom.png')
                 #frameBottom.show('C:/Users/alyss/OneDrive/Desktop/videoframes/savedBottom.png')
@@ -125,7 +134,7 @@ def screenshot():
             break
 
 #button to open cams
-openButton = Button(displayTop, text = "open cams", command=open_camera)
+openButton = Button(displayTop, text = "open cams", command=new_window)
 openButton.pack()
 
 #threads screenshot function to run simultaneously with windows
