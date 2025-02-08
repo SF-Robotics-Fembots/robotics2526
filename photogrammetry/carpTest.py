@@ -60,19 +60,29 @@ class TableWidgetDemo(QMainWindow):
          #return self.column_data1
       
 
-   def changeRegionColor(self):
-      region1 = np_array[0]
-      region2 = np_array[1]
+   # def changeRegionColor(self):
+   #    region1 = np_array[0]
+   #    region2 = np_array[1]
 
-      if 'y' in region1:
-         print(np.where(region1 == 'y'))
+   #    if 'y' in region1:
+   #       print(np.where(region1 == 'y'))
       
    def update_year(self):
       global text
+      region1 = np_array[0]
       self.label.configure(text=self.years[self.text])
       self.text = (self.text + 1) % len(self.years)
       self.parent.after(1000, self.update_year)
+      # if 'y' in region1:
+      #    print(np.argwhere(region1 == 'y'))
+      for year in self.years:
+         present = 'y'
+         #absent = 'n'
+         for status in region1:
+            if status == present:
+               print("carp present in this year: ", year)
 
+         
       #Update region carp presence
 
       #2016
@@ -106,7 +116,7 @@ class TableWidgetDemo(QMainWindow):
       self.label = tk.Label(self.parent, text=self.years[0])
       self.label.pack()
       self.update_year()
-      self.changeRegionColor()
+      #self.changeRegionColor()
       #self.print_data()
 
       #image
