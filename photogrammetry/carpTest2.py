@@ -12,10 +12,10 @@ from tkinter import ttk
 from tkinter import filedialog as fd
 from tkinter import PhotoImage
 import time
-import cv2
 
 class TableWidgetDemo(QMainWindow):
    #self.table_widget=QTableWidget()
+   global image
    def __init__(self):
       super().__init__()
       self.setWindowTitle("Fish Modeling")
@@ -60,14 +60,6 @@ class TableWidgetDemo(QMainWindow):
          return np_array
          #return self.column_data1
       
-
-   # def changeRegionColor(self):
-   #    region1 = np_array[0]
-   #    region2 = np_array[1]
-
-   #    if 'y' in region1:
-   #       print(np.where(region1 == 'y'))
-      
    def update_year(self):
       global text
       #region1 = np_array[0]
@@ -78,62 +70,52 @@ class TableWidgetDemo(QMainWindow):
       self.convert_table_data_array()
       self.print_data()
 
-      # if 'y' in region1:
-      #    print(np.argwhere(region1 == 'y'))
-         
-      #Update region carp presence
-
-
 
    def print_data(self):
-
-      #33this works
-      if self.text == 1:
-         print("Its 2016")
-      
-      #Use Later
-      #2016
-      # if self.text == 1:
-      #    if 'y' in np_array[0]:
-      #       print(np.where(np_array[0] == 'y'))
-      #    if 'y' in np_array[1]:
-      #       print(np.where(np_array[1] == 'y'))
-      #    if 'y' in np_array[2]:
-      #       print(np.where(np_array[2] == 'y'))
-      #    if 'y' in np_array[3]:
-      #       print(np.where(np_array[3] == 'y'))
-      #    if 'y' in np_array[4]:
-      #       print(np.where(np_array[4] == 'y'))
-
-      if self.text == 1:
-         if np_array[0][0] == 'y':
-            print("in 2016, there is carp in region 1")
-
-         else:
-            print("none")
-            
+    #   if self.text == 1:
+    #      if np_array[0][0] == 'y':
+    #         print("in 2016, there is carp in region 1")
+    #      else:
+    #         print("NOOO")
+    if self.text == 1:
+        pixel_map = image.load() 
+        width, height = image.size
+        for i in range(width//2):  
+            print
 
    def animate(self):
-      self.parent = tk.Tk()
-      self.parent.title("Pls work")
+    # Step 1: Initialize the main window
+    self.parent = tk.Tk()
+    self.parent.title("Image in Frame Example")
 
-      #open image
-      #self.image = PhotoImage(file="C:/Users/rosar/Pictures/Screenshots/waterRegioncarp.png")
-      map = Image.open("C:/Users/alyss/Downloads/waterRegioncarp.png")
-      self.image_label = tk.Label(self.parent, image=self.image)
+    # Step 2: Create a frame within the main window
+    frame = Frame(self.parent, width=700, height=850)
+    frame.pack()
+
+    # Step 3: Load the image using PIL
+    image_path = "C:/Users/alyss/Downloads/waterRegioncarp.png" # Replace with your image path
+    image = Image.open(image_path)
+    photo = ImageTk.PhotoImage(image)
+
+    # Step 4: Create a Canvas widget and add the image to it
+    canvas = Canvas(frame, width=700, height=850)
+    canvas.pack()
+
+    # Add the image to the canvas
+    canvas.create_image(0, 0, anchor=tk.NW, image=photo)
+
+    # Keep a reference to avoid garbage collection
+    canvas.image = photo
 
       #changing year
-      self.years = [2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025]
-      self.text = 0
-      self.label = tk.Label(self.parent, text=self.years[0])
-      self.label.pack()
-      self.update_year()
-      #self.changeRegionColor()
-      
-
-      #image
-      self.image_label.pack()
-      self.parent.mainloop()
+    self.years = [2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025]
+    self.text = 0
+    self.label = tk.Label(self.parent, text=self.years[0])
+    self.label.pack()
+    self.update_year()
+    #image
+    #self.image_label.pack()
+    self.parent.mainloop()
       
 
 if __name__ == "__main__":
