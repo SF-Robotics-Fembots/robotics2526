@@ -107,8 +107,8 @@ def screenshot():
                 topright = 1287
                 topbottom = 1081
                 frameTop = frameTop.crop((topleft, toptop, topright, topbottom))
-                frameTop.save('C:/Users/alyss/OneDrive/Desktop/videoframes/savedTop' + str(counter) + '.png')
-                frameTop.show('C:/Users/alyss/OneDrive/Desktop/videoframes/savedTop' + str(counter) + '.png')
+                frameTop.save('C:/Users/SFHSR/OneDrive/Desktop/videoframes/savedTop' + str(counter) + '.png')
+                frameTop.show('C:/Users/SFHSR/OneDrive/Desktop/videoframes/savedTop' + str(counter) + '.png')
                 print("showing")
 
                 frameBottom = pyscreeze.screenshot(region=windowBottom.box)
@@ -119,8 +119,8 @@ def screenshot():
                 bottomright = 1290
                 bottombottom = 1082
                 frameBottom = frameBottom.crop((bottomleft, bottomtop, bottomright, bottombottom))
-                frameBottom.save('C:/Users/alyss/OneDrive/Desktop/videoframes/savedBottom' + str(counter) + '.png')
-                frameBottom.show('C:/Users/alyss/OneDrive/Desktop/videoframes/savedBottom' + str(counter) + '.png')
+                frameBottom.save('C:/Users/SFHSR/OneDrive/Desktop/videoframes/savedBottom' + str(counter) + '.png')
+                frameBottom.show('C:/Users/SFHSR/OneDrive/Desktop/videoframes/savedBottom' + str(counter) + '.png')
                 print("showing")
 
                 print(counter)
