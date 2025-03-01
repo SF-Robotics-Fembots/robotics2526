@@ -2,7 +2,6 @@ from tkinter import *
 import tkinter as tk
 import cv2
 from PIL import Image, ImageTk
-import pyscreenshot
 import pygetwindow as gw
 import pyscreeze
 import keyboard
