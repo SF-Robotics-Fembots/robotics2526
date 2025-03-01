@@ -40,8 +40,8 @@ class CaptureCam(QThread):
                 #
                 ret, frame = capture.read()
                 #rotating cameras
-                if self.url == 'http://192.168.1.99:8080/stream':
-                    frame = cv2.rotate(frame, cv2.ROTATE_180)
+                #if self.url == 'http://192.168.1.99:8080/stream':
+                #    frame = cv2.rotate(frame, cv2.ROTATE_180)
                 #elif self.url == "http://192.168.1.99:8084/stream":
                  #   frame = cv2.rotate(frame, cv2.ROTATE_180)
                 #elif self.url == "http://192.168.1.99:8086/stream":
@@ -70,10 +70,10 @@ class MainWindow(QMainWindow):
         super(MainWindow, self).__init__()
 
         #get camera streams
-        self.url_1 = 0
-        self.url_2 = 1
-        self.url_1 = 'http://192.168.1.99:8080/stream'
-        self.url_2 = "http://192.168.1.99:8082/stream"
+        #self.url_1 = 0
+        #self.url_2 = 1
+        self.url_1 = 'http://192.168.1.99:8082/stream'
+        self.url_2 = "http://192.168.1.99:8080/stream"
         self.url_3 = "http://192.168.1.99:8084/stream"
         self.url_4 = "http://192.168.1.99:8086/stream" #photogrammetry cam
         self.url_5 =  "http://192.168.1.99:8088/stream"
@@ -161,13 +161,13 @@ class MainWindow(QMainWindow):
         self.QScrollArea_6.setWidgetResizable(True)
         self.QScrollArea_6.setWidget(self.camera_6)
 
-        self.camera1_label = QLabel("un", self)
+        self.camera1_label = QLabel("nav cam", self)
         self.camera1_label.setStyleSheet("color: #F1F6FD")
         self.camera1_label.setAlignment(Qt.AlignCenter)
-        self.camera2_label = QLabel("deux", self)
+        self.camera2_label = QLabel("photosphere top", self)
         self.camera2_label.setStyleSheet("color: #F1F6FD")
         self.camera2_label.setAlignment(Qt.AlignCenter)
-        self.camera3_label = QLabel("trois", self)
+        self.camera3_label = QLabel("photosphere bottom", self)
         self.camera3_label.setStyleSheet("color: #F1F6FD")
         self.camera3_label.setAlignment(Qt.AlignCenter)
         self.camera4_label = QLabel("quatre", self)
