@@ -16,6 +16,7 @@ width, height = 1300, 1100
 
 #camera 1
 url1 = 0
+#cam1 = cv2.VideoCapture(0)
 cam1 = cv2.VideoCapture('http://192.168.1.99:8080/stream')
 cam1.set(cv2.CAP_PROP_FRAME_WIDTH, width)
 cam1.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
