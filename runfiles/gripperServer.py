@@ -64,10 +64,6 @@ def main(ip_address):
         on_release=on_release) as listener:
         listener.join()
 
-        
-
-
-
 #run the function
 if __name__ == "__main__":
     main()

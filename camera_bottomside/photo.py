@@ -11,8 +11,6 @@ import sys
 import time
 from PyQt5 import *
 from PyQt5 import QtWidgets
-import cv2
-import sys
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
@@ -20,7 +18,6 @@ import numpy as np
 from tkinter import *
 import tkinter as tk
 import pyautogui as pg
-import time
 import pygetwindow
 import keyboard
 from PIL import Image
