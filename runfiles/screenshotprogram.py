@@ -11,13 +11,13 @@ import time
 width, height = 1300, 1100
 
 #assign the cams
-#cam1 = cv2.VideoCapture(0)
-cam1 = cv2.VideoCapture('http://192.168.1.99:8080/stream')
+cam1 = cv2.VideoCapture(0)
+#cam1 = cv2.VideoCapture('http://192.168.1.99:8080/stream')
 cam1.set(cv2.CAP_PROP_FRAME_WIDTH, width)
 cam1.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
 
-#cam2 = cv2.VideoCapture(0)
-cam2 = cv2.VideoCapture('http://192.168.1.99:8084/stream')
+cam2 = cv2.VideoCapture(0)
+#cam2 = cv2.VideoCapture('http://192.168.1.99:8084/stream')
 cam2.set(cv2.CAP_PROP_FRAME_WIDTH, width)
 cam2.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
 

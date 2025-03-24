@@ -7,7 +7,7 @@ import pyscreeze
 import keyboard
 import threading
 
-width, height = 1300, 1100
+width, height = 1600, 1400
 
 #camera 1
 url1 = 0
