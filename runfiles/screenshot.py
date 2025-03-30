@@ -7,7 +7,7 @@ import pyscreeze
 import keyboard
 import threading
 
-width, height = 1300, 1100
+width, height = 2000, 1800
 
 #camera 1
 url1 = 0
@@ -101,10 +101,10 @@ def screenshot():
                 frameTop = pyscreeze.screenshot(region=windowTop.box)
                 #frameTop.show()
                 #print(frameTop.size) #gets pizel size if the cam we use changes perchance
-                topleft = 20
-                toptop = 62
-                topright = 1287
-                topbottom = 1081
+                topleft = 14
+                toptop = 49
+                topright = 794
+                topbottom = 599
                 frameTop = frameTop.crop((topleft, toptop, topright, topbottom))
                 frameTop.save('C:/Users/SFHSR/OneDrive/Desktop/videoframes/savedTop' + str(counter) + '.png')
                 frameTop.show('C:/Users/SFHSR/OneDrive/Desktop/videoframes/savedTop' + str(counter) + '.png')
@@ -113,10 +113,10 @@ def screenshot():
                 frameBottom = pyscreeze.screenshot(region=windowBottom.box)
                 #frameBottom.show()
                 #print(frameTop.size)
-                bottomleft = 20
-                bottomtop = 64
-                bottomright = 1290
-                bottombottom = 1082
+                bottomleft = 13
+                bottomtop = 49
+                bottomright = 802
+                bottombottom = 596
                 frameBottom = frameBottom.crop((bottomleft, bottomtop, bottomright, bottombottom))
                 frameBottom.save('C:/Users/SFHSR/OneDrive/Desktop/videoframes/savedBottom' + str(counter) + '.png')
                 frameBottom.show('C:/Users/SFHSR/OneDrive/Desktop/videoframes/savedBottom' + str(counter) + '.png')
