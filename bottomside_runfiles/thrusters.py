@@ -20,7 +20,7 @@ def main(ip_server):
 	debug_l2 = 0
 
 	#rotation compensation
-	rot_comp = -0.16 #was -0.28
+	rot_comp = -0.08 #was -0.28
 
 	i2c = busio.I2C(board.SCL, board.SDA)
 	shield = adafruit_pca9685.PCA9685(i2c)
@@ -300,7 +300,7 @@ def main(ip_server):
 			finalVertDiff = abs(powerVertThrusterVals[1] - vert_off_value)
 			finalTotal = (finalHorDiff * 4) + (finalVertDiff * 2)
 			if (finalTotal != 0):
-				percent = (2400/finalTotal) #2400
+				percent = (2100/finalTotal) #2400
 				#finds percent to display how much we are exceeding power use (ex. exceeding power limit by 5%)
 				if (finalTotal > 2100): #was 1950, max 2934
 					for thruster in range(0, 4):
