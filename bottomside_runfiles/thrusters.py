@@ -21,7 +21,7 @@ def main(ip_server):
 
 	#rotation compensation
 	rot_comp = -0.08 #was -0.28
-	slide_comp = 0.05
+	slide_comp = -0.05
 
 	i2c = busio.I2C(board.SCL, board.SDA)
 	shield = adafruit_pca9685.PCA9685(i2c)
