@@ -21,6 +21,7 @@ def main(ip_server):
 
 	#rotation compensation
 	rot_comp = -0.08 #was -0.28
+	slide_comp = 0.05
 
 	i2c = busio.I2C(board.SCL, board.SDA)
 	shield = adafruit_pca9685.PCA9685(i2c)
@@ -210,6 +211,7 @@ def main(ip_server):
 			#print("R Speed: " + str(r_speed))
 			#rotation compensation :(
 			r_speed = int(r_speed + rot_comp * y_speed)
+			r_speed = int(r_speed + slide_comp * x_speed)
 
 			
 			directionRecieved = ((clientSocket1.recv(1024)).decode())
