@@ -174,11 +174,6 @@ class MainWindow(QMainWindow):
         self.camera3_label.setStyleSheet("color: #F1F6FD")
         self.camera3_label.setAlignment(Qt.AlignCenter)
 
-        #screenshot stuff
-        self.SSbutton = QPushButton("                            SCREENSHOT                         ", self)
-        self.SSbutton.setToolTip('screenshot')
-        self.SSbutton.clicked.connect(self.screen_shot)
-        self.SSbutton.setStyleSheet("color: midnightblue; background: #F1F6FD;")
         self.__SetupUI()
 
         #connects to ImageUpdate to keep updating the frames
@@ -209,10 +204,6 @@ class MainWindow(QMainWindow):
         grid_layout.addWidget(self.camera3_label, 1, 2)
 
 
-        grid_layout.addWidget(self.SSbutton, 4, 0, 1, 2, alignment=Qt.AlignmentFlag.AlignHCenter)
-        #grid_layout.setRowMinimumHeight(3, 1)
-        #grid_layout.setRowMinimumHeight(4, 2)
-
         self.widget = QWidget(self)
         self.widget.setLayout(grid_layout)
 
@@ -242,8 +233,7 @@ class MainWindow(QMainWindow):
     def on_screenshot_taken(self):
         print("Screenshot saved")
 
-    #screenshot function
-    def screen_shot(self):
+    def switch(self):
         random = int(time.time())
         file = "D:/screenshots" + str(random) + ".png"
         window = pygetwindow.getWindowsWithTitle('CAMERA GUI')[0]
