@@ -25,6 +25,8 @@ def on_release(key):
         if front == 1: front = 0
         else: front = 1
 
+        if back == back: back = back
+
         gripper_vals = {
             "front" : front,
             "back" : back
