@@ -90,4 +90,4 @@ def main(ip_address):
 
 #run the function
 if __name__ == "__main__":
-    main()
+    main(ip_address)

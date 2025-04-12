@@ -4,7 +4,7 @@ import socket, json
 
 #variables
 #ip_address = "127.0.0.1" # 192.168.1.100
-#ip_address = "192.168.1.100"
+ip_address = "192.168.1.100"
 port = 40000
 #gripper gpos
 front_gripper = 14
@@ -51,4 +51,4 @@ def main(ip_address):
 
 #always remember to call the function
 if          __name__ == "__main__":
-    main()
+    main(ip_address)
