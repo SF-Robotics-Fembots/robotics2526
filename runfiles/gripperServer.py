@@ -8,7 +8,7 @@ import pickle #idk what this does but it likes to dill the json!
 #set the port to use in threading
 port = 40000
 #ip_address = "127.0.0.1" # 192.168.1.100
-#ip_address = "192.168.1.100"
+ip_address = "192.168.1.100"
 front = 1
 back = 1
 changed = 1
