@@ -10,6 +10,7 @@ port = 40000
 #ip_address = "127.0.0.1" # 192.168.1.100
 #ip_address = "192.168.1.100"
 front = 1
+back = 1
 changed = 1
 
 #list the input as a keyboard press
@@ -18,20 +19,26 @@ def on_release(key):
     global front #the value as global so that we can use it outside of the function
     if key == Key.tab:
         prev_front = front #set the previous front value to front; will be used to compare changes
+        prev_back = back
 
-        #check if the value changed
+        #check if the front value changed
         if front == 1: front = 0
         else: front = 1
 
+        #check if the back value changed
+        if back == 1: back = 0
+        else: back = 1
+
         gripper_vals = {
-            "front" : front
+            "front" : front,
+            "back" : back
         }
         #get the message
         message = json.dumps(gripper_vals)
         message = message.encode()
 
         #check if changed
-        if prev_front != front:
+        if (prev_front != front) or (prev_back != back):
             #client_connected.send(message) #sends through the socket connection
             print(message)
             client_connected.send(message)

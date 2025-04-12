@@ -21,6 +21,8 @@ def main(ip_address):
     with gpiod.request_lines("/dev/gpiochip4", consumer="LED", config={
         front_gripper: gpiod.LineSettings(
             direction=Direction.OUTPUT, output_value=Value.INACTIVE
+        ), side_gripper: gpiod.LineSettings(
+            direction=Direction.OUTPUT, output_value=Value.INACTIVE
         )
     },) as request:
             while True: 
@@ -35,6 +37,10 @@ def main(ip_address):
                      request.set_value(front_gripper, Value.ACTIVE)
                 elif(database["front"] == 0):
                      request.set_value(front_gripper, Value.INACTIVE)
+                if(database["back"] == 1):
+                     request.set_value(side_gripper, Value.ACTIVE)
+                elif(database["back"] == 0):
+                     request.set_value(side_gripper, Value.INACTIVE)
 
   
 
