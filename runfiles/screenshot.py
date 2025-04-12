@@ -21,6 +21,12 @@ cam2 = cv2.VideoCapture("http://192.168.1.99:8084/stream")
 cam2.set(cv2.CAP_PROP_FRAME_WIDTH, width)
 cam2.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
 
+#camera 3
+url3 = 2
+cam3 = cv2.VideoCapture("http://192.168.1.99:8082/stream")
+cam3.set(cv2.CAP_PROP_FRAME_WIDTH, width)
+cam3.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
+
 #create first window 
 displayTop = Tk()
 displayTop.title('top photosphere')
@@ -34,6 +40,7 @@ cam1Display.pack()
 def new_window():
     print("opening new window")
     global cam2Display #can be accessed throughout program
+    global cam3Display
     check = False #easier for opening both cameras without crashing
 
     #make second window
@@ -46,11 +53,21 @@ def new_window():
     cam2Display.pack()
     print("made second display")
 
+    displayMiddle = tk.Toplevel()
+    displayMiddle.title('middle photosphere')
+    displayMiddle.bind('<Escape>', lambda e: displayBottom.quit())
+
+    #create camera display on 'displayBottom'
+    cam3Display = Label(displayMiddle)
+    cam3Display.pack()
+    print("made third display")
+
     #changes check to open camera streams on windows
     check = True
     if check:
         open_camera() #runs first camera stream
         open_camera2() #runs second camera stream
+        open_camera3()
 
 #runs first cam stream
 def open_camera():
@@ -82,7 +99,22 @@ def open_camera2():
     cam2Display.configure(image=photo_image2)
 
     #updates frames
-    cam2Display.after(10, open_camera2)
+    cam2Display.after(15, open_camera2)
+
+def open_camera3():
+    #read 
+    #print("getting frame 2")
+    ret3, frame3 = cam3.read()
+
+    #updates image settings
+    opencv_image3 = cv2.cvtColor(frame3, cv2.COLOR_BGR2RGBA)
+    captured_image3 = Image.fromarray(opencv_image3)
+    photo_image3 = ImageTk.PhotoImage(image = captured_image3)
+    cam3Display.photo_image3 = photo_image3
+    cam3Display.configure(image=photo_image3)
+
+    #updates frames
+    cam3Display.after(15, open_camera3)
 
 #screenshots frames when ready
 def screenshot():
@@ -94,10 +126,11 @@ def screenshot():
             #finds window that needs screenshot
             windowTop = gw.getWindowsWithTitle('top photosphere')[0]
             windowBottom = gw.getWindowsWithTitle('bottom photosphere')[0]
+            windowMiddle = gw.getWindowsWithTitle('middle photosphere')[0]
 
             counter = counter + 1
             #takes screenshot, saves, and displays
-            if windowTop and windowBottom:
+            if windowTop and windowBottom and windowMiddle:
                 frameTop = pyscreeze.screenshot(region=windowTop.box)
                 #frameTop.show()
                 #print(frameTop.size) #gets pizel size if the cam we use changes perchance
@@ -107,7 +140,7 @@ def screenshot():
                 topbottom = 599
                 frameTop = frameTop.crop((topleft, toptop, topright, topbottom))
                 frameTop.save('C:/Users/SFHSR/OneDrive/Desktop/videoframes/savedTop' + str(counter) + '.png')
-                frameTop.show('C:/Users/SFHSR/OneDrive/Desktop/videoframes/savedTop' + str(counter) + '.png')
+                #frameTop.show('C:/Users/SFHSR/OneDrive/Desktop/videoframes/savedTop' + str(counter) + '.png')
                 print("showing")
 
                 frameBottom = pyscreeze.screenshot(region=windowBottom.box)
@@ -119,7 +152,19 @@ def screenshot():
                 bottombottom = 596
                 frameBottom = frameBottom.crop((bottomleft, bottomtop, bottomright, bottombottom))
                 frameBottom.save('C:/Users/SFHSR/OneDrive/Desktop/videoframes/savedBottom' + str(counter) + '.png')
-                frameBottom.show('C:/Users/SFHSR/OneDrive/Desktop/videoframes/savedBottom' + str(counter) + '.png')
+               # frameBottom.show('C:/Users/SFHSR/OneDrive/Desktop/videoframes/savedBottom' + str(counter) + '.png')
+                print("showing")
+
+                frameMiddle = pyscreeze.screenshot(region=windowMiddle.box)
+                #frameBottom.show()
+                #print(frameTop.size)
+                middleleft = 13
+                middletop = 49
+                middleright = 802
+                middlebottom = 596
+                frameMiddle = frameMiddle.crop((bottomleft, bottomtop, bottomright, bottombottom))
+                frameMiddle.save('C:/Users/SFHSR/OneDrive/Desktop/videoframes/savedBottom' + str(counter) + '.png')
+               # frameBottom.show('C:/Users/SFHSR/OneDrive/Desktop/videoframes/savedBottom' + str(counter) + '.png')
                 print("showing")
 
                 print(counter)
