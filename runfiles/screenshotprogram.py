@@ -46,12 +46,13 @@ class ScreenshotThread(QThread):
         window = pygetwindow.getWindowsWithTitle('CAMERA GUI')[0]
         pg = pyscreeze.screenshot(region=window.box)
         #pg.screenshot(f'C:/Users/SFHSR/OneDrive/Desktop/videoframes/savedBottom_{random}.png')
-        top = pg.crop((17, 61, 853, 621))
-        top.save(f'C:/Users/alyss/OneDrive/Desktop/videoframes/savedTop_{random}.png')
-        middle = pg.crop((884, 61, 1742, 621))
-        middle.save(f'C:/Users/alyss/OneDrive/Desktop/videoframes/savedMiddle_{random}.png')
-        bottom = pg.crop((1756, 61, 2570, 621))
-        bottom.save(f'C:/Users/alyss/OneDrive/Desktop/videoframes/savedBottom_{random}.png')
+        top = pg.crop((11, 50, 827, 682))
+        top.save(f'C:/Users/SFHSR/OneDrive/Desktop/screenshots/savedTop_{random}.png')
+        middle = pg.crop((850, 50, 1672, 682))
+        middle.save(f'C:/Users/SFHSR/OneDrive/Desktop/screenshots/savedMiddle_{random}.png')
+        bottom = pg.crop((1685, 50, 2598, 682))
+        bottom.save(f'C:/Users/SFHSR/OneDrive/Desktop/screenshots/savedBottom_{random}.png')
+        #pg.show()
         #pg.save(file)
         top.show()
         middle.show()
@@ -208,7 +209,7 @@ class MainWindow(QMainWindow):
         self.widget.setLayout(grid_layout)
 
         self.setCentralWidget(self.widget)
-        self.setMinimumSize(2600, 720)
+        self.setMinimumSize(2500, 720)
         #self.showMaximized()
         self.setStyleSheet("QMainWindow {background: 'midnightblue';}")
 
