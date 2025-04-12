@@ -38,7 +38,7 @@ def on_release(key):
         message = message.encode()
 
         #check if changed
-        if (prev_front != front) or (prev_back != back):
+        if (prev_front != front):
             #client_connected.send(message) #sends through the socket connection
             print(message)
             client_connected.send(message)
@@ -61,7 +61,7 @@ def on_release(key):
         message = message.encode()
 
         #check if changed
-        if (prev_front != front) or (prev_back != back):
+        if (prev_back != back):
             #client_connected.send(message) #sends through the socket connection
             print(message)
             client_connected.send(message)
