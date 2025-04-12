@@ -17,7 +17,7 @@ changed = 1
 def on_release(key):
     global changed
     global front #the value as global so that we can use it outside of the function
-    if key == 'f':
+    if key == Key.tab:
         prev_front = front #set the previous front value to front; will be used to compare changes
 
         #check if the front value changed
@@ -38,7 +38,7 @@ def on_release(key):
             print(message)
             client_connected.send(message)
 
-    if key == 's':
+    if key == Key.shift:
         #prev_front = front #set the previous front value to front; will be used to compare changes
         prev_back = back
 
