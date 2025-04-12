@@ -21,7 +21,9 @@ def main(ip_address):
     with gpiod.request_lines("/dev/gpiochip4", consumer="LED", config={
         front_gripper: gpiod.LineSettings(
             direction=Direction.OUTPUT, output_value=Value.INACTIVE
-        ), side_gripper: gpiod.LineSettings(
+        )
+    },) and gpiod.request_lines("/dev/gpiochip4", consumer="LED", config={
+        side_gripper: gpiod.LineSettings(
             direction=Direction.OUTPUT, output_value=Value.INACTIVE
         )
     },) as request:
