@@ -33,11 +33,14 @@ class ScreenshotThread(QThread):
         super().__init__()
     
     def run(self):
+        keyboard.on_press_key("p", lambda _: self.screenshot())
         while True:
+            time.sleep(0.1)
+        '''while True:
             if keyboard.is_pressed('p'):
                 print("got pressed")
                 self.screenshot()
-            time.sleep(1)
+                time.sleep(0.01)'''
     
     def screenshot(self):
         print("taking screenshot")
@@ -45,15 +48,14 @@ class ScreenshotThread(QThread):
         file = "D:/screenshots" + str(random) + ".png"
         window = pygetwindow.getWindowsWithTitle('CAMERA GUI')[0]
         pg = pyscreeze.screenshot(region=window.box)
-        #pg.screenshot(f'C:/Users/SFHSR/OneDrive/Desktop/videoframes/savedBottom_{random}.png')
-        top = pg.crop((11, 50, 827, 682))
-        top.save(f'C:/Users/SFHSR/OneDrive/Desktop/screenshots/savedTop_{random}.png')
-        middle = pg.crop((850, 50, 1672, 682))
-        middle.save(f'C:/Users/SFHSR/OneDrive/Desktop/screenshots/savedMiddle_{random}.png')
-        bottom = pg.crop((1685, 50, 2598, 682))
-        bottom.save(f'C:/Users/SFHSR/OneDrive/Desktop/screenshots/savedBottom_{random}.png')
         #pg.show()
-        #pg.save(file)
+        #pg.screenshot(f'C:/Users/SFHSR/OneDrive/Desktop/videoframes/savedBottom_{random}.png')
+        top = pg.crop((12, 46, 836, 734))
+        top.save(f'C:/Users/SFHSR/OneDrive/Desktop/screenshots/savedTop_{random}.png')
+        middle = pg.crop((850, 46, 1674, 734))
+        middle.save(f'C:/Users/SFHSR/OneDrive/Desktop/screenshots/savedMiddle_{random}.png')
+        bottom = pg.crop((1688, 46, 2510, 734))
+        bottom.save(f'C:/Users/SFHSR/OneDrive/Desktop/screenshots/savedBottom_{random}.png')
         top.show()
         middle.show()
         bottom.show()
@@ -112,11 +114,11 @@ class MainWindow(QMainWindow):
         self.screenshot_thread.start()
 
         #get camera streams
-        #self.url_1 = 'http://192.168.1.99:8080/stream'
+        self.url_1 = 'http://192.168.1.99:8080/stream'
         self.url_2 = "http://192.168.1.99:8082/stream"
         self.url_3 = "http://192.168.1.99:8084/stream"
 
-        self.url_1 = 0
+        #self.url_1 = 0
         #self.url_2 = 0
         #self.url_3 = 0
         #self.url_4 = 0
