@@ -6,7 +6,7 @@ import socket, json
 #ip_address = "192.168.1.100"
 port = 40000
 #pump gpio
-pump = x
+pump = 23
 
 
 def main(ip_address):

@@ -10,7 +10,7 @@ pump = 0 #start off
 def on_release(key):
     global changed
     global pump
-    if key == Key.tab:
+    if key == Key.f1:
         prev_pump = pump #used to compare changes
 
         #check if the value changed
@@ -36,7 +36,7 @@ def on_release(key):
 #write the listener
 def on_press(key):
     #use f1 to press key
-    if key == Key.f1: return False
+    if key == Key.esc: return False
 
 
 #main function
