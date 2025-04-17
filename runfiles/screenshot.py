@@ -1,189 +1,268 @@
+# import the require packages.
+import cv2
+from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, \
+    QLabel, QGridLayout, QScrollArea, QSizePolicy, QWidget, QPushButton
+from PyQt5.QtGui import QPixmap, QIcon, QImage, QPalette
+from PyQt5.QtCore import QThread, pyqtSignal, Qt, QEvent, QObject
+from PyQt5.QtCore import *
+from PyQt5.QtGui import *
+from PyQt5 import QtCore
+import sys
+import time
+from PyQt5 import *
+from PyQt5 import QtWidgets
+import cv2
+import sys
+from PyQt5.QtGui import *
+from PyQt5.QtCore import *
+from PyQt5.QtWidgets import *
+import numpy as np
 from tkinter import *
 import tkinter as tk
-import cv2
-from PIL import Image, ImageTk
-import pygetwindow as gw
+import pyautogui as pg
+import time
+import pygetwindow
+from PIL import Image
 import pyscreeze
 import keyboard
-import threading
+#gets camera frames
 
-width, height = 2000, 1800
+class ScreenshotThread(QThread):
+    screenshot_taken = pyqtSignal(str)
 
-#camera 1
-url1 = 0
-cam1 = cv2.VideoCapture('http://192.168.1.99:8080/stream')
-cam1.set(cv2.CAP_PROP_FRAME_WIDTH, width)
-cam1.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
+    def __init__(self):
+        super().__init__()
 
-#camera 2
-url2 = 1
-cam2 = cv2.VideoCapture("http://192.168.1.99:8084/stream")
-cam2.set(cv2.CAP_PROP_FRAME_WIDTH, width)
-cam2.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
+    def run(self):
+        print("check")
+        while True:
+            if keyboard.is_pressed('p'):
+                print("got pressed")
+                self.screenshot()
+            timeppp                                                                 .sleep(0.25)
 
-#camera 3
-url3 = 2
-cam3 = cv2.VideoCapture("http://192.168.1.99:8082/stream")
-cam3.set(cv2.CAP_PROP_FRAME_WIDTH, width)
-cam3.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
+    def screenshot(self):
+        print("taking screenshot")
+        random = time.strftime("%Y%m%d_%H%M%S")
+        file = "D:/screenshots" + str(random) + ".png"
+        window = pygetwindow.getWindowsWithTitle('CAMERA GUI')[0]
+        pg = pyscreeze.screenshot(region=window.box)
+        #pg.screenshot(f'C:/Users/SFHSR/OneDrive/Desktop/videoframes/savedBottom_{random}.png')
+        top = pg.crop((11, 50, 827, 682))
+        top.save(f'C:/Users/SFHSR/OneDrive/Desktop/screenshots/savedTop_{random}.png')
+        middle = pg.crop((850, 50, 1672, 682))
+        middle.save(f'C:/Users/SFHSR/OneDrive/Desktop/screenshots/savedMiddle_{random}.png')
+        bottom = pg.crop((1685, 50, 2598, 682))
+        bottom.save(f'C:/Users/SFHSR/OneDrive/Desktop/screenshots/savedBottom_{random}.png')
+        #pg.show()
+        #pg.save(file)
+        top.show()
+        middle.show()
+        bottom.show()
+        self.screenshot_taken.emit(file)
 
-#create first window 
-displayTop = Tk()
-displayTop.title('top photosphere')
-displayTop.bind('<Escape>', lambda e: displayTop.quit())
 
-#create camera display on window 'displayTop'
-cam1Display = Label(displayTop)
-cam1Display.pack()
+class CaptureCam(QThread):
+    ImageUpdate = pyqtSignal(QImage)
 
-#creates second window
-def new_window():
-    print("opening new window")
-    global cam2Display #can be accessed throughout program
-    global cam3Display
-    check = False #easier for opening both cameras without crashing
+    def __init__(self, url):
+        super(CaptureCam, self).__init__()
+        self.url = url
+        self.threadActive = True
 
-    #make second window
-    displayBottom = tk.Toplevel()
-    displayBottom.title('bottom photosphere')
-    displayBottom.bind('<Escape>', lambda e: displayBottom.quit())
+    def run(self) -> None:
+        capture = cv2.VideoCapture(self.url)
 
-    #create camera display on 'displayBottom'
-    cam2Display = Label(displayBottom)
-    cam2Display.pack()
-    print("made second display")
+        if capture.isOpened():
+            while self.threadActive:
+                #
+                ret, frame = capture.read()
+                #rotating cameras
+                #if self.url == 'http://192.168.1.99:808/stream':
+                 #   frame = cv2.rotate(frame, cv2.ROTATE_180)
+                #if self.url == "http://192.168.1.99:8082/stream":
+                 #   frame = cv2.rotate(frame, cv2.ROTATE_180)
+                #elif self.url == "http://192.168.1.99:8086/stream":
+                    #frame = cv2.rotate(frame, cv2.ROTATE_180)
+                # frame setup
+                if ret:
+                    height, width, channels = frame.shape
+                    bytes_per_line = width * channels
+                    cv_rgb_image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                    qt_rgb_image = QImage(cv_rgb_image.data, width, height, bytes_per_line, QImage.Format_RGB888)
+                    qt_rgb_image_scaled = qt_rgb_image.scaled(520, 480, Qt.KeepAspectRatio)
 
-    displayMiddle = tk.Toplevel()
-    displayMiddle.title('middle photosphere')
-    displayMiddle.bind('<Escape>', lambda e: displayBottom.quit())
+                    self.ImageUpdate.emit(qt_rgb_image_scaled)
+                else:
+                    break
+        capture.release()
+        self.quit()
 
-    #create camera display on 'displayBottom'
-    cam3Display = Label(displayMiddle)
-    cam3Display.pack()
-    print("made third display")
+    def stop(self) -> None:
+        self.threadActive = False
 
-    #changes check to open camera streams on windows
-    check = True
-    if check:
-        open_camera() #runs first camera stream
-        open_camera2() #runs second camera stream
-        open_camera3()
+#ui setup
+class MainWindow(QMainWindow):
 
-#runs first cam stream
-def open_camera():
-    #read VideoCapture
-    #print("getting frame 1")
-    ret, frame1 = cam1.read()
+    def __init__(self) -> None:
+        super(MainWindow, self).__init__()
 
-    #updates image settings
-    opencv_image1 = cv2.cvtColor(frame1, cv2.COLOR_BGR2RGBA)
-    captured_image1 = Image.fromarray(opencv_image1)
-    photo_image1 = ImageTk.PhotoImage(image = captured_image1)
-    cam1Display.photo_image1 = photo_image1
-    cam1Display.configure(image=photo_image1)
+        self.screenshot_thread = ScreenshotThread()
 
-    #updates frame
-    cam1Display.after(10, open_camera)
+        self.screenshot_thread.screenshot_taken.connect(self.on_screenshot_taken)
 
-#runs second cam stream
-def open_camera2():
-    #read VideoCapture
-    #print("getting frame 2")
-    ret2, frame2 = cam2.read()
+        self.screenshot_thread.start()
 
-    #updates image settings
-    opencv_image2 = cv2.cvtColor(frame2, cv2.COLOR_BGR2RGBA)
-    captured_image2 = Image.fromarray(opencv_image2)
-    photo_image2 = ImageTk.PhotoImage(image = captured_image2)
-    cam2Display.photo_image2 = photo_image2
-    cam2Display.configure(image=photo_image2)
+        #get camera streams
+        #self.url_1 = 0
+        #self.url_2 = 1
+        self.url_1 = 'http://192.168.1.99:8082/stream'
+        self.url_2 = "http://192.168.1.99:8080/stream"
+        self.url_3 = "http://192.168.1.99:8084/stream"
+        #self.url_1 = 0
+        #self.url_2 = 0
+        #self.url_3 = 0
+        #self.url_4 = 0
 
-    #updates frames
-    cam2Display.after(15, open_camera2)
+        self.list_cameras = {}
 
-def open_camera3():
-    #read 
-    #print("getting frame 2")
-    ret3, frame3 = cam3.read()
+        self.camera_1 = QLabel()
+        self.camera_1.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Ignored)
+        self.camera_1.setScaledContents(True)
+        self.camera_1.installEventFilter(self)
+        self.camera_1.setObjectName("Camera_1")
+        self.list_cameras["Camera_1"] = "Normal"
 
-    #updates image settings
-    opencv_image3 = cv2.cvtColor(frame3, cv2.COLOR_BGR2RGBA)
-    captured_image3 = Image.fromarray(opencv_image3)
-    photo_image3 = ImageTk.PhotoImage(image = captured_image3)
-    cam3Display.photo_image3 = photo_image3
-    cam3Display.configure(image=photo_image3)
+        self.QScrollArea_1 = QScrollArea()
+        self.QScrollArea_1.setBackgroundRole(QPalette.Dark)
+        self.QScrollArea_1.setWidgetResizable(True)
+        self.QScrollArea_1.setWidget(self.camera_1)
 
-    #updates frames
-    cam3Display.after(15, open_camera3)
+        
+        self.camera_2 = QLabel()
+        self.camera_2.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Ignored)
+        self.camera_2.setScaledContents(True)
+        self.camera_2.installEventFilter(self)
+        self.camera_2.setObjectName("Camera_2")
+        self.list_cameras["Camera_2"] = "Normal"
 
-#screenshots frames when ready
-def screenshot():
-    counter = 0
-    while True:
-        #print(keyboard.read_key()) ###double checks if keyboard reading works
-        #use 'p' to take screenshot
-        if keyboard.read_key() == "p":
-            #finds window that needs screenshot
-            windowTop = gw.getWindowsWithTitle('top photosphere')[0]
-            windowBottom = gw.getWindowsWithTitle('bottom photosphere')[0]
-            windowMiddle = gw.getWindowsWithTitle('middle photosphere')[0]
+        self.QScrollArea_2 = QScrollArea()
+        self.QScrollArea_2.setBackgroundRole(QPalette.Dark)
+        self.QScrollArea_2.setWidgetResizable(True)
+        self.QScrollArea_2.setWidget(self.camera_2)
 
-            counter = counter + 1
-            #takes screenshot, saves, and displays
-            if windowTop and windowBottom and windowMiddle:
-                frameTop = pyscreeze.screenshot(region=windowTop.box)
-                #frameTop.show()
-                #print(frameTop.size) #gets pizel size if the cam we use changes perchance
-                topleft = 14
-                toptop = 49
-                topright = 794
-                topbottom = 599
-                frameTop = frameTop.crop((topleft, toptop, topright, topbottom))
-                frameTop.save('C:/Users/SFHSR/OneDrive/Desktop/videoframes/savedTop' + str(counter) + '.png')
-                #frameTop.show('C:/Users/SFHSR/OneDrive/Desktop/videoframes/savedTop' + str(counter) + '.png')
-                print("showing")
+    
+        self.camera_3 = QLabel()
+        self.camera_3.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Ignored)
+        self.camera_3.setScaledContents(True)
+        self.camera_3.installEventFilter(self)
+        self.camera_3.setObjectName("Camera_3")
+        self.list_cameras["Camera_3"] = "Normal"
 
-                frameBottom = pyscreeze.screenshot(region=windowBottom.box)
-                #frameBottom.show()
-                #print(frameTop.size)
-                bottomleft = 13
-                bottomtop = 49
-                bottomright = 802
-                bottombottom = 596
-                frameBottom = frameBottom.crop((bottomleft, bottomtop, bottomright, bottombottom))
-                frameBottom.save('C:/Users/SFHSR/OneDrive/Desktop/videoframes/savedBottom' + str(counter) + '.png')
-               # frameBottom.show('C:/Users/SFHSR/OneDrive/Desktop/videoframes/savedBottom' + str(counter) + '.png')
-                print("showing")
+        self.QScrollArea_3 = QScrollArea()
+        self.QScrollArea_3.setBackgroundRole(QPalette.Dark)
+        self.QScrollArea_3.setWidgetResizable(True)
+        self.QScrollArea_3.setWidget(self.camera_3)
 
-                frameMiddle = pyscreeze.screenshot(region=windowMiddle.box)
-                #frameBottom.show()
-                #print(frameTop.size)
-                middleleft = 13
-                middletop = 49
-                middleright = 802
-                middlebottom = 596
-                frameMiddle = frameMiddle.crop((bottomleft, bottomtop, bottomright, bottombottom))
-                frameMiddle.save('C:/Users/SFHSR/OneDrive/Desktop/videoframes/savedBottom' + str(counter) + '.png')
-               # frameBottom.show('C:/Users/SFHSR/OneDrive/Desktop/videoframes/savedBottom' + str(counter) + '.png')
-                print("showing")
+        self.camera1_label = QLabel("nav cam", self)
+        self.camera1_label.setStyleSheet("color: #F1F6FD")
+        self.camera1_label.setAlignment(Qt.AlignCenter)
+        self.camera2_label = QLabel("photosphere top", self)
+        self.camera2_label.setStyleSheet("color: #F1F6FD")
+        self.camera2_label.setAlignment(Qt.AlignCenter)
+        self.camera3_label = QLabel("photosphere bottom", self)
+        self.camera3_label.setStyleSheet("color: #F1F6FD")
+        self.camera3_label.setAlignment(Qt.AlignCenter)
 
-                print(counter)
-                #frameBottom = pyscreeze.screenshot(region=windowBottom.box)
-                #frameBottom.save('C:/Users/alyss/OneDrive/Desktop/videoframes/savedBottom.png')
-                #frameBottom.show('C:/Users/alyss/OneDrive/Desktop/videoframes/savedBottom.png')
+        self.__SetupUI()
 
-                pass
+        #connects to ImageUpdate to keep updating the frames
+        self.CaptureCam_1 = CaptureCam(self.url_1)
+        self.CaptureCam_1.ImageUpdate.connect(lambda image: self.ShowCamera1(image))
 
-        if keyboard.read_key() == "q":
-            break
+        self.CaptureCam_2 = CaptureCam(self.url_2)
+        self.CaptureCam_2.ImageUpdate.connect(lambda image: self.ShowCamera2(image))
 
-#button to open cams
-openButton = Button(displayTop, text = "open cams", command=new_window)
-openButton.pack()
+        self.CaptureCam_3 = CaptureCam(self.url_3)
+        self.CaptureCam_3.ImageUpdate.connect(lambda image: self.ShowCamera3(image))
 
-#threads screenshot function to run simultaneously with windows
-screenshotThread = threading.Thread(target=screenshot, daemon=True)
-screenshotThread.start()
 
-#runs first window
-displayTop.mainloop()
+        #.start() runs the .run() function in CaptureCam that changes frame settings
+        self.CaptureCam_1.start()
+        self.CaptureCam_2.start()
+        self.CaptureCam_3.start()
+
+    def __SetupUI(self):
+        grid_layout = QGridLayout()
+        grid_layout.setContentsMargins(0, 0, 0, 0)
+        grid_layout.addWidget(self.QScrollArea_1, 0, 0)
+        grid_layout.addWidget(self.QScrollArea_2, 0, 1)
+        grid_layout.addWidget(self.QScrollArea_3, 0, 2)
+        grid_layout.addWidget(self.camera1_label, 1, 0)
+        grid_layout.addWidget(self.camera2_label, 1, 1)
+        grid_layout.addWidget(self.camera3_label, 1, 2)
+
+        self.widget = QWidget(self)
+        self.widget.setLayout(grid_layout)
+
+        self.setCentralWidget(self.widget)
+        self.setMinimumSize(2500, 720)
+        #self.showMaximized()
+        self.setStyleSheet("QMainWindow {background: 'midnightblue';}")
+
+        self.setWindowTitle("CAMERA GUI")
+
+    @QtCore.pyqtSlot()
+    def ShowCamera1(self, frame: QImage) -> None:
+        self.camera_1.setPixmap(QPixmap.fromImage(frame))
+
+    @QtCore.pyqtSlot()
+    def ShowCamera2(self, frame: QImage) -> None:
+        self.camera_2.setPixmap(QPixmap.fromImage(frame))
+
+    @QtCore.pyqtSlot()
+    def ShowCamera3(self, frame: QImage) -> None:
+        self.camera_3.setPixmap(QPixmap.fromImage(frame))
+
+    def start_key_press_listener(self):
+        self.listener_thread = QThread(target=self.start_key_press_listener)
+        self.listener_thread.start()
+
+    def on_screenshot_taken(self):
+        print("Screenshot saved")
+
+    def switch(self):
+        random = int(time.time())
+        file = "D:/screenshots" + str(random) + ".png"
+        window = pygetwindow.getWindowsWithTitle('CAMERA GUI')[0]
+        pg.screenshot(file)
+        im = Image.open(file)
+        #im = im.crop((, , , ))
+        im.save(file)
+        im.show(file)
+
+    def close(self, event):
+        if self.CaptureCam_1.isRunning():
+            self.CaptureCam_1.quit()
+        if self.CaptureCam_2.isRunning():
+            self.CaptureCam_2.quit()
+        if self.CaptureCam_3.isRunning():
+            self.CaptureCam_3.quit()
+        event.accept()
+
+#runs window
+def main():
+    # Create a QApplication object. It manages the GUI application's control flow and main settings.
+    # It handles widget specific initialization, finalization.
+    # For any GUI application using Qt, there is precisely one QApplication object
+    app = QApplication(sys.argv)
+    # Create an instance of the class MainWindow.
+    window = MainWindow()
+    # Show the window.
+    window.show()
+    # Start Qt event loop.
+    sys.exit(app.exec_())
+
+
+if __name__ == '__main__':
+    main()

@@ -18,7 +18,7 @@ gripperCode = threading.Thread(target=gripperServer.main, args=(ip_server,))
 
 
 
-joystickCode.start()
+joystickCode.start()                                                                                                                            
 inverseCode.start()
 gripperCode.start()
 
