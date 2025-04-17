@@ -37,7 +37,7 @@ class ScreenshotThread(QThread):
             if keyboard.is_pressed('p'):
                 print("got pressed")
                 self.screenshot()
-                time.sleep(1)
+            time.sleep(1)
     
     def screenshot(self):
         print("taking screenshot")
@@ -112,11 +112,11 @@ class MainWindow(QMainWindow):
         self.screenshot_thread.start()
 
         #get camera streams
-        self.url_1 = 'http://192.168.1.99:8080/stream'
+        #self.url_1 = 'http://192.168.1.99:8080/stream'
         self.url_2 = "http://192.168.1.99:8082/stream"
         self.url_3 = "http://192.168.1.99:8084/stream"
 
-        #self.url_1 = 0
+        self.url_1 = 0
         #self.url_2 = 0
         #self.url_3 = 0
         #self.url_4 = 0
