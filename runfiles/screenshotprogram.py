@@ -50,6 +50,8 @@ class ScreenshotThread(QThread):
         pg = pyscreeze.screenshot(region=window.box)
         #pg.show()
         #pg.screenshot(f'C:/Users/SFHSR/OneDrive/Desktop/videoframes/savedBottom_{random}.png')
+
+        '''dimensions for ops laptop'''
         top = pg.crop((12, 46, 836, 734))
         top.save(f'C:/Users/SFHSR/OneDrive/Desktop/screenshots/savedTop_{random}.png')
         middle = pg.crop((850, 46, 1674, 734))
@@ -59,6 +61,8 @@ class ScreenshotThread(QThread):
         top.show()
         middle.show()
         bottom.show()
+
+        
         self.screenshot_taken.emit(file)
 
 

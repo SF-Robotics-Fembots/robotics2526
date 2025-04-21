@@ -72,8 +72,8 @@ class MainWindow(QMainWindow):
         #get camera streams
         #self.url_1 = 0
         #self.url_2 = 1
-        self.url_1 = 'http://192.168.1.99:8082/stream'
-        self.url_2 = "http://192.168.1.99:8080/stream"
+        self.url_1 = 'http://192.168.1.99:8080/stream'
+        self.url_2 = "http://192.168.1.99:8082/stream"
         self.url_3 = "http://192.168.1.99:8084/stream"
         self.url_4 = "http://192.168.1.99:8086/stream" #photogrammetry cam
         self.url_5 =  "http://192.168.1.99:8088/stream"

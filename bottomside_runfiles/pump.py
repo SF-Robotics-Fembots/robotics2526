@@ -4,7 +4,7 @@ import socket, json
 
 #variables
 #ip_address = "192.168.1.100"
-port = 40000
+port = 7070
 #pump gpio
 pump = 23
 

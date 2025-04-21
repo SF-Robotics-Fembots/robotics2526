@@ -3,7 +3,7 @@ import socket, hid, json
 import time, pynput, keyboard
 from pynput.keyboard import Key, Listener 
 #set the port to use in threading
-port = 40000
+port = 7070
 #ip_address = "192.168.1.100"
 pump = 0 #start off
 
