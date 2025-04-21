@@ -62,7 +62,7 @@ class ScreenshotThread(QThread):
         middle.show()
         bottom.show()
 
-        
+
         self.screenshot_taken.emit(file)
 
 
