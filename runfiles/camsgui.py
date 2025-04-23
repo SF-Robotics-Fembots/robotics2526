@@ -40,13 +40,13 @@ class CaptureCam(QThread):
                 #
                 ret, frame = capture.read()
                 #rotating cameras
-                #if self.url == 'http://192.168.1.99:808/stream':
-                 #   frame = cv2.rotate(frame, cv2.ROTATE_180)
-                #if self.url == "http://192.168.1.99:8082/stream":
-                 #   frame = cv2.rotate(frame, cv2.ROTATE_180)
+                if self.url == 'http://192.168.1.99:8084/stream':
+                    frame = cv2.rotate(frame, cv2.ROTATE_180)
+                if self.url == "http://192.168.1.99:8086/stream":
+                    frame = cv2.rotate(frame, cv2.ROTATE_180)
                 #elif self.url == "http://192.168.1.99:8086/stream":
                     #frame = cv2.rotate(frame, cv2.ROTATE_180)
-                # frame setup
+                # frame setupsss
                 if ret:
                     height, width, channels = frame.shape
                     bytes_per_line = width * channels
@@ -74,8 +74,8 @@ class MainWindow(QMainWindow):
         #self.url_2 = 1
         self.url_1 = 'http://192.168.1.99:8082/stream' #nav
         self.url_2 = "http://192.168.1.99:8080/stream" #top
-        self.url_3 = "http://192.168.1.99:8086/stream" #bottom
-        self.url_4 = "http://192.168.1.99:8084/stream" #gripper front
+        self.url_3 = "http://192.168.1.99:8084/stream" #bottom
+        self.url_4 = "http://192.168.1.99:8086/stream" #gripper back
         self.url_5 =  "http://192.168.1.99:8088/stream"
         self.url_6 = "http://192.168.1.99:8090/stream"
 
