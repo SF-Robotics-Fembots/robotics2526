@@ -1,43 +1,28 @@
-# #program for invasive carp model
-# #%matplotlib inline
-# from matplotlib.pyplot import figure
-# import matplotlib.pyplot as plt
-# import matplotlib.image as mpimg
-# from matplotlib import pyplot as plt, animation
-# img = plt.imread(r"C:/Users/rosar/Downloads/carpRegion.png")
+import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation
 
-# #yearList = [2016, 2017, 2018]
+# Create a figure and axis
+fig, ax = plt.subplots()
+ax.set_xlim(0, 10)
+ax.set_ylim(0, 10)
 
-# figure(figsize=(7, 12), dpi=150)
-# plt.text(-300, 150, 'year', fontsize=18, color='red')
-# # def updateYear(i):
-# #     yearLabel
-# #     yearLabel.set_text(yearList[i + 1])
+# Initialize text
+text = ax.text(5, 5, '', ha='center', va='center', fontsize=15)
 
-# imgplot = plt.imshow(img)
-# #anim = animation.FuncAnimation(updateYear, interval=200, frames=len(yearList))
-# plt.axis('off')
-# plt.show()
-import tkinter as tk
-import time
+# Update function for animation
+def update(frame):
+    text.set_text(f'{frame}')
+    return text,
 
-# def Draw():
-#     global text
-#     frame = tk.Frame(root,width=100,height=100,relief='solid',bd=1)
-#     frame.place(x=10,y=10)
-#     text=tk.Label(frame,text='HELLO')
-#     text.pack()
+# Reset function to clear the text
+def reset(event):
+    text.set_text('')
+    fig.canvas.draw()
 
-def update_year():
-    global text
-    label.configure(text=years[text])
-    text = (text + 1) % len(years)
-    root.after(2000, update_year)
-    
-root = tk.Tk()
-years = [2016, 2017, 2018]
-text = 0
-label = tk.Label(root, text=years[0])
-label.pack()
-update_year()
-root.mainloop()
+# Create animation
+ani = FuncAnimation(fig, update, frames=range(2016, 2025), interval=500, blit=True)
+
+# Connect reset function to a button press event
+fig.canvas.mpl_connect('button_press_event', reset)
+
+plt.show()
