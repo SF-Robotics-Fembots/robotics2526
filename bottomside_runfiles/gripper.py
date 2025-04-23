@@ -7,8 +7,8 @@ import socket, json
 #ip_address = "192.168.1.100"
 port = 40000
 #gripper gpos
-front_gripper = 21
-side_gripper = 20
+front_gripper = 14
+side_gripper = 15
 
 def main(ip_address):
     #client setup shenanigans
@@ -23,18 +23,27 @@ def main(ip_address):
             direction=Direction.OUTPUT, output_value=Value.INACTIVE
         )
     },) as request:
-            while True: 
-                #print("client connected!")
-                data = client_socket.recv(1024)
-                data = data.decode()
-                print(data)
-                database = json.loads(data)
+             with gpiod.request_lines("/dev/gpiochip4", consumer="LED", config={
+                side_gripper: gpiod.LineSettings(
+                direction=Direction.OUTPUT, output_value=Value.INACTIVE
+            )
+            },) as request2:
+                while True: 
+                    #print("client connected!")
+                    data = client_socket.recv(1024)
+                    data = data.decode()
+                    print(data)
+                    database = json.loads(data)
 
-                #write to the gripper
-                if(database["front"] == 1):
-                     request.set_value(front_gripper, Value.ACTIVE)
-                elif(database["front"] == 0):
-                     request.set_value(front_gripper, Value.INACTIVE)
+                    #write to the gripper
+                    if(database["front"] == 1):
+                        request.set_value(front_gripper, Value.ACTIVE)
+                    elif(database["front"] == 0):
+                        request.set_value(front_gripper, Value.INACTIVE)
+                    if(database["back"] == 1):
+                        request2.set_value(side_gripper, Value.ACTIVE)
+                    elif(database["back"] == 0):
+                        request2.set_value(side_gripper, Value.INACTIVE)
 
   
 
