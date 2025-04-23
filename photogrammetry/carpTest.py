@@ -3,6 +3,8 @@ from tkinter import ttk, messagebox
 import numpy as np
 from PIL import Image, ImageTk
 import time
+from PyQt5.QtWidgets import QApplication, QMainWindow, QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget, QPushButton
+
 import cv2
 
 class TableWidgetDemo(QMainWindow):
