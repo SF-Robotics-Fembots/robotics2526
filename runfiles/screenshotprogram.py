@@ -33,7 +33,9 @@ class ScreenshotThread(QThread):
         super().__init__()
     
     def run(self):
-        keyboard.on_press_key("p", lambda _: self.screenshot())
+        keyboard.on_press_key("t", lambda _: self.screenshottop())
+        keyboard.on_press_key("m", lambda _: self.screenshotmiddle())
+        keyboard.on_press_key("b", lambda _: self.screenshotbottom())
         while True:
             time.sleep(0.1)
         '''while True:
@@ -42,7 +44,7 @@ class ScreenshotThread(QThread):
                 self.screenshot()
                 time.sleep(0.01)'''
     
-    def screenshot(self):
+    def screenshottop(self):
         print("taking screenshot")
         random = time.strftime("%Y%m%d_%H%M%S")
         file = "D:/screenshots" + str(random) + ".png"
@@ -54,13 +56,47 @@ class ScreenshotThread(QThread):
         '''dimensions for ops laptop'''
         top = pg.crop((12, 46, 836, 734))
         top.save(f'C:/Users/SFHSR/OneDrive/Desktop/screenshots/savedTop_{random}.png')
-        middle = pg.crop((850, 46, 1674, 734))
-        middle.save(f'C:/Users/SFHSR/OneDrive/Desktop/screenshots/savedMiddle_{random}.png')
+        #top.show()
+        #middle.show()
+        #bottom.show()
+
+
+        self.screenshot_taken.emit(file)
+
+    def screenshotbottom(self):             
+        print("taking screenshot")
+        random = time.strftime("%Y%m%d_%H%M%S")
+        file = "D:/screenshots" + str(random) + ".png"
+        window = pygetwindow.getWindowsWithTitle('CAMERA GUI')[0]
+        pg = pyscreeze.screenshot(region=window.box)
+        #pg.show()
+        #pg.screenshot(f'C:/Users/SFHSR/OneDrive/Desktop/videoframes/savedBottom_{random}.png')
+
+        '''dimensions for ops laptop'''
         bottom = pg.crop((1688, 46, 2510, 734))
         bottom.save(f'C:/Users/SFHSR/OneDrive/Desktop/screenshots/savedBottom_{random}.png')
-        top.show()
-        middle.show()
-        bottom.show()
+        #top.show()
+        #middle.show()
+        #bottom.show()
+
+
+        self.screenshot_taken.emit(file)
+
+    def screenshotmiddle(self):
+        print("taking screenshot")
+        random = time.strftime("%Y%m%d_%H%M%S")
+        file = "D:/screenshots" + str(random) + ".png"
+        window = pygetwindow.getWindowsWithTitle('CAMERA GUI')[0]
+        pg = pyscreeze.screenshot(region=window.box)
+        #pg.show()
+        #pg.screenshot(f'C:/Users/SFHSR/OneDrive/Desktop/videoframes/savedBottom_{random}.png')
+
+        '''dimensions for ops laptop'''
+        middle = pg.crop((850, 46, 1674, 734))
+        middle.save(f'C:/Users/SFHSR/OneDrive/Desktop/screenshots/savedMiddle_{random}.png')
+        #top.show()
+        #middle.show()
+        #bottom.show()
 
 
         self.screenshot_taken.emit(file)
@@ -86,8 +122,8 @@ class CaptureCam(QThread):
                 #
                 ret, frame = capture.read()
                 #rotating cameras
-                #if self.url == 'http://192.168.1.99:8080/stream':
-                 #   frame = cv2.rotate(frame, cv2.ROTATE_180)
+                if self.url == 'http://192.168.1.99:8086/stream':
+                    frame = cv2.rotate(frame, cv2.ROTATE_180)
                 # frame setup
                 if ret:
                     height, width, channels = frame.shape
@@ -167,13 +203,13 @@ class MainWindow(QMainWindow):
         self.QScrollArea_3.setWidgetResizable(True)
         self.QScrollArea_3.setWidget(self.camera_3)
 
-        self.camera1_label = QLabel("BACK GRIPPER", self)
+        self.camera1_label = QLabel("top", self)
         self.camera1_label.setStyleSheet("color: #F1F6FD")
         self.camera1_label.setAlignment(Qt.AlignCenter)
-        self.camera2_label = QLabel("FRONT GRIPPER", self)
+        self.camera2_label = QLabel("middle", self)
         self.camera2_label.setStyleSheet("color: #F1F6FD")
         self.camera2_label.setAlignment(Qt.AlignCenter)
-        self.camera3_label = QLabel("BACK DOWN", self)
+        self.camera3_label = QLabel("bottom", self)
         self.camera3_label.setStyleSheet("color: #F1F6FD")
         self.camera3_label.setAlignment(Qt.AlignCenter)
 
@@ -241,10 +277,10 @@ class MainWindow(QMainWindow):
         file = "D:/screenshots" + str(random) + ".png"
         window = pygetwindow.getWindowsWithTitle('CAMERA GUI')[0]
         pg.screenshot(file)
-        im = Image.open(file)
+        im = file
         #im = im.crop((, , , ))
         im.save(file)
-        im.show(file)
+        #im.show(file)
 
     def close(self, event):
         if self.CaptureCam_1.isRunning():
