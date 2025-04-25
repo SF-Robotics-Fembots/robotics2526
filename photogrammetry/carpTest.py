@@ -1,17 +1,10 @@
-import sys
-from PyQt5.QtWidgets import QApplication, QMainWindow, QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget, QPushButton
+import tkinter as tk
+from tkinter import ttk, messagebox
 import numpy as np
-from matplotlib.pyplot import figure
-import matplotlib.pyplot as plt
-from matplotlib import animation
-import tkinter
-from tkinter import *
 from PIL import Image, ImageTk
-import tkinter as tk 
-from tkinter import ttk 
-from tkinter import filedialog as fd
-from tkinter import PhotoImage
 import time
+from PyQt5.QtWidgets import QApplication, QMainWindow, QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget, QPushButton
+
 import cv2
 
 class TableWidgetDemo(QMainWindow):
@@ -137,7 +130,4 @@ class TableWidgetDemo(QMainWindow):
       
 
 if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    window = TableWidgetDemo()
-    window.show()
-    sys.exit(app.exec_())
+    main() 
