@@ -156,7 +156,7 @@ class MainWindow(QMainWindow):
         #get camera streams
         self.url_1 = 'http://192.168.1.99:8080/stream' #top
         self.url_2 = "http://192.168.1.99:8082/stream" #nav
-        self.url_3 = "http://192.168.1.99:8086/stream" #bottom
+        self.url_3 = "http://192.168.1.99:8084/stream" #back gripper
 
         #self.url_1 = 0
         #self.url_2 = 0
@@ -203,13 +203,13 @@ class MainWindow(QMainWindow):
         self.QScrollArea_3.setWidgetResizable(True)
         self.QScrollArea_3.setWidget(self.camera_3)
 
-        self.camera1_label = QLabel("top", self)
+        self.camera1_label = QLabel("top photosphere", self)
         self.camera1_label.setStyleSheet("color: #F1F6FD")
         self.camera1_label.setAlignment(Qt.AlignCenter)
-        self.camera2_label = QLabel("middle", self)
+        self.camera2_label = QLabel("nav", self)
         self.camera2_label.setStyleSheet("color: #F1F6FD")
         self.camera2_label.setAlignment(Qt.AlignCenter)
-        self.camera3_label = QLabel("bottom", self)
+        self.camera3_label = QLabel("back gripper", self)
         self.camera3_label.setStyleSheet("color: #F1F6FD")
         self.camera3_label.setAlignment(Qt.AlignCenter)
 

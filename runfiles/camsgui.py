@@ -167,7 +167,7 @@ class MainWindow(QMainWindow):
         self.camera2_label = QLabel("photosphere top", self)
         self.camera2_label.setStyleSheet("color: #F1F6FD")
         self.camera2_label.setAlignment(Qt.AlignCenter)
-        self.camera3_label = QLabel("bac            bmmtmmt                     k gripper", self)
+        self.camera3_label = QLabel("bac            bmmtmmt                             k gripper", self)
         self.camera3_label.setStyleSheet("color: #F1F6FD")
         self.camera3_label.setAlignment(Qt.AlignCenter)
         self.camera4_label = QLabel("bottom photosphere", self)
