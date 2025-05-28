@@ -20,13 +20,13 @@ def main(ip_server):
 	debug_l2 = 0
 
 	#rotation compensation
-	rot_comp = -0.08 #was -0.28
+	rot_comp = 0 #was -0.08
 	slide_comp = 0.19
 
 	i2c = busio.I2C(board.SCL, board.SDA)
 	shield = adafruit_pca9685.PCA9685(i2c)
 	kit = ServoKit(channels=16)
-	shield.frequency = 100
+	shield.frequency = 97
 
 	thrusterChannel1 = shield.channels[14] #15
 	thrusterChannel2 = shield.channels[2] #0
@@ -302,9 +302,9 @@ def main(ip_server):
 			finalVertDiff = abs(powerVertThrusterVals[1] - vert_off_value)
 			finalTotal = (finalHorDiff * 4) + (finalVertDiff * 2)
 			if (finalTotal != 0):
-				percent = (2400/finalTotal) #2400
+				percent = (2700/finalTotal) #2400
 				#finds percent to display how much we are exceeding power use (ex. exceeding power limit by 5%)
-				if (finalTotal > 2400): #was 1950, max 2934
+				if (finalTotal > 2700): #was 1950, max 2934
 					for thruster in range(0, 4):
 						Diff = powerThrusterVals[thruster] - horiz_off_value
 						newDiff = Diff * (percent)
