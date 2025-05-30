@@ -38,13 +38,17 @@ def main(ip_address):
                     #write to the gripper
                     if(database["front"] == 1):
                         request.set_value(front_gripper, Value.ACTIVE)
+                        print("open front")
                     elif(database["front"] == 0):
                         request.set_value(front_gripper, Value.INACTIVE)
+                        print("close front")
                     if(database["back"] == 1):
                         request2.set_value(side_gripper, Value.ACTIVE)
+                        print("open back")
                     elif(database["back"] == 0):
                         request2.set_value(side_gripper, Value.INACTIVE)
-
+                        print("close back")
+s
   
 
     
