@@ -40,12 +40,12 @@ class CaptureCam(QThread):
                 #
                 ret, frame = capture.read()
                 #rotating cameras
-                if self.url == 'http://192.168.1.99:8084/stream':
+                if self.url == 'http://192.168.1.99:8080/stream':
                     frame = cv2.rotate(frame, cv2.ROTATE_180)
-                if self.url == "http://192.168.1.99:8086/stream":
-                    frame = cv2.rotate(frame, cv2.ROTATE_180)
-                #elif self.url == "http://192.168.1.99:8086/stream":
-                    #frame = cv2.rotate(frame, cv2.ROTATE_180)
+                #if self.url == "http://192.168.1.99:8082/stream":
+                #    frame = cv2.rotate(frame, cv2.ROTATE_180)
+                #if self.url == "http://192.168.1.99:8088/stream":
+                #    frame = cv2.rotate(frame, cv2.ROTATE_180)
                 # frame setupsss
                 if ret:
                     height, width, channels = frame.shape
@@ -167,10 +167,10 @@ class MainWindow(QMainWindow):
         self.camera2_label = QLabel("photosphere top", self)
         self.camera2_label.setStyleSheet("color: #F1F6FD")
         self.camera2_label.setAlignment(Qt.AlignCenter)
-        self.camera3_label = QLabel("bac            bmmtmmt                             k gripper", self)
+        self.camera3_label = QLabel("bottom photosphere", self)
         self.camera3_label.setStyleSheet("color: #F1F6FD")
         self.camera3_label.setAlignment(Qt.AlignCenter)
-        self.camera4_label = QLabel("bottom photosphere", self)
+        self.camera4_label = QLabel("back gripper", self)
         self.camera4_label.setStyleSheet("color: #F1F6FD")
         self.camera4_label.setAlignment(Qt.AlignCenter)
         self.camera5_label = QLabel("cinq", self)
