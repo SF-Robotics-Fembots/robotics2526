@@ -48,7 +48,7 @@ def main(ip_address):
                     elif(database["back"] == 0):
                         request2.set_value(side_gripper, Value.INACTIVE)
                         print("close back")
-s
+
   
 
     
