@@ -19,16 +19,19 @@ def set_external_clock(bus):
     mode1_sleep = mode1 | (1 << 4)
     write_byte(bus, PCA9685_ADDR, MODE1_REG, mode1_sleep)
     time.sleep(0.01)
+    print("read one" + read_byte(bus, PCA9685_ADDR, MODE1_REG))
 
     # Step 3: Set EXTCLK (bit 7) and leave SLEEP set
     mode1_extclk = mode1_sleep | (1 << 7)
     write_byte(bus, PCA9685_ADDR, MODE1_REG, mode1_extclk)
     time.sleep(0.01)
+    print("read one" + read_byte(bus, PCA9685_ADDR, MODE1_REG))
 
     # Step 4: Clear SLEEP to start the external clock
     mode1_awake = mode1_extclk & ~(1 << 4)
     write_byte(bus, PCA9685_ADDR, MODE1_REG, mode1_awake)
     time.sleep(0.001)  # Wait 500 µs or more
+    print("read one" + read_byte(bus, PCA9685_ADDR, MODE1_REG))
 
 def set_pwm_freq(bus, freq_hz, ext_clock_hz=25000000):
     # Calculate prescale for given clock and target frequency
@@ -49,5 +52,6 @@ def set_pwm_freq(bus, freq_hz, ext_clock_hz=25000000):
 
 # 🔧 Example Usage
 with SMBus(1) as bus:  # Use I2C bus 1 on Raspberry Pi
-    set_external_clock(bus)
     set_pwm_freq(bus, freq_hz=100)  # Set to 50 Hz for servos
+    set_external_clock(bus)
+   
