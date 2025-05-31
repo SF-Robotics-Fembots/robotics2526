@@ -20,26 +20,26 @@ def set_external_clock(bus):
     mode1_sleep = mode1 | (1 << 4)
     write_byte(bus, PCA9685_ADDR, MODE1_REG, 0x00)
     time.sleep(0.01)
-    print("read one: " + str(read_byte(bus, PCA9685_ADDR, MODE1_REG)))
+    print("read one: " + str(hex(read_byte(bus, PCA9685_ADDR, MODE1_REG))))
 
     # Step 3: Set sleep bit
     mode1_extclk = mode1_sleep | (1 << 7)
     write_byte(bus, PCA9685_ADDR, MODE1_REG, 0x10)
     time.sleep(0.01)
-    print("read two: " + str(read_byte(bus, PCA9685_ADDR, MODE1_REG)))
+    print("read two: " + str(hex(read_byte(bus, PCA9685_ADDR, MODE1_REG))))
 
     write_byte(bus, PCA9685_ADDR, PRESCALE_REG, 0x3C4)
-    print("read prescale: " + str(read_byte(bus, PCA9685_ADDR, MODE1_REG)))
+    print("read prescale: " + str(hex(read_byte(bus, PCA9685_ADDR, PRESCALE_REG))))
 
     # Step 4: set sleep and external oscillator
     mode1_awake = mode1_extclk & ~(1 << 4)
     write_byte(bus, PCA9685_ADDR, MODE1_REG, 0x50)
     time.sleep(0.001)  # Wait 500 µs or more
-    print("read three: " + str(read_byte(bus, PCA9685_ADDR, MODE1_REG)))
+    print("read three: " + str(hex(read_byte(bus, PCA9685_ADDR, MODE1_REG))))
 
     write_byte(bus, PCA9685_ADDR, MODE1_REG, 0xD0)
     time.sleep(0.001)  # Wait 500 µs or more
-    print("read four: " + str(read_byte(bus, PCA9685_ADDR, MODE1_REG)))
+    print("read four: " + str(hex(read_byte(bus, PCA9685_ADDR, MODE1_REG))))
 
 def set_pwm_freq(bus, freq_hz, ext_clock_hz=25000000):
     # Calculate prescale for given clock and target frequency
