@@ -16,6 +16,8 @@ def main(ip_server):
 	vert_off_value = 1500
 	vert_thrust_offset = 0
 
+	#MODE1_REG = 0x00
+
 	#debug! make more laters
 	debug_l2 = 0
 
@@ -24,6 +26,10 @@ def main(ip_server):
 	slide_comp = 0.19
 
 	i2c = busio.I2C(board.SCL, board.SDA)
+	#i2c.write_byte_data(0x40, 0x00, 0x10)
+	#time.sleep(0.01)
+	#i2c.write_byte_data(0x40, 0x00, 0x50)
+	#time.sleep(0.01)
 	shield = adafruit_pca9685.PCA9685(i2c)
 	kit = ServoKit(channels=16)
 	shield.frequency = 98
