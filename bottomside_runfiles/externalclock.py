@@ -37,6 +37,10 @@ def set_external_clock(bus):
     time.sleep(0.001)  # Wait 500 µs or more
     print("read three: " + str(read_byte(bus, PCA9685_ADDR, MODE1_REG)))
 
+    write_byte(bus, PCA9685_ADDR, MODE1_REG, 0xD0)
+    time.sleep(0.001)  # Wait 500 µs or more
+    print("read four: " + str(read_byte(bus, PCA9685_ADDR, MODE1_REG)))
+
 def set_pwm_freq(bus, freq_hz, ext_clock_hz=25000000):
     # Calculate prescale for given clock and target frequency
     prescaleval = ext_clock_hz / (4096.0 * freq_hz) - 1
