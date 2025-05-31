@@ -26,7 +26,7 @@ def main(ip_server):
 	i2c = busio.I2C(board.SCL, board.SDA)
 	shield = adafruit_pca9685.PCA9685(i2c)
 	kit = ServoKit(channels=16)
-	shield.frequency = 97
+	shield.frequency = 98
 
 	thrusterChannel1 = shield.channels[14] #15
 	thrusterChannel2 = shield.channels[2] #0
