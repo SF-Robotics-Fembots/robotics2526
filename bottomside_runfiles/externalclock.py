@@ -29,7 +29,7 @@ def set_external_clock(bus):
     print("read two: " + str(read_byte(bus, PCA9685_ADDR, MODE1_REG)))
 
     write_byte(bus, PCA9685_ADDR, PRESCALE_REG, 0x3C4)
-    print("read prescale: " + str(read_byte(bus, PCA9685_ADDR MODE1_REG)))
+    print("read prescale: " + str(read_byte(bus, PCA9685_ADDR, MODE1_REG)))
 
     # Step 4: set sleep and external oscillator
     mode1_awake = mode1_extclk & ~(1 << 4)
