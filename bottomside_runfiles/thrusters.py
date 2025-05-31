@@ -22,7 +22,7 @@ def main(ip_server):
 	debug_l2 = 0
 
 	#rotation compensation
-	rot_comp = 0 #was -0.08
+	rot_comp = -0.08 #was -0.08
 	slide_comp = 0.19
 
 	i2c = busio.I2C(board.SCL, board.SDA)
