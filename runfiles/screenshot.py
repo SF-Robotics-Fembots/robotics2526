@@ -38,8 +38,7 @@ class ScreenshotThread(QThread):
         while True:
             if keyboard.is_pressed('p'):
                 print("got pressed")
-                self.screenshot()
-            timeppp                                                                 .sleep(0.25)
+                self.screenshot()                                                                .sleep(0.25)
 
     def screenshot(self):
         print("taking screenshot")
