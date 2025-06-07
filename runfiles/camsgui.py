@@ -57,6 +57,7 @@ class CaptureCam(QThread):
                     self.ImageUpdate.emit(qt_rgb_image_scaled)
                 else:
                     break
+                time.sleep(0.015)
         capture.release()
         self.quit()
 

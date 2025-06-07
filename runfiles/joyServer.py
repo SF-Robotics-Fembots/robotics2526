@@ -28,14 +28,14 @@ def main(ip_server):
     slow_speed = 0
 
     while True:
-        print("joystick loop")
+        #print("joystick loop")
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 break
-            if event.type == pygame.JOYAXISMOTION:
-                print(event)
-            if event.type == pygame.JOYBUTTONDOWN:
-                print(event)
+            #if event.type == pygame.JOYAXISMOTION:
+            #    print(event)
+            #if event.type == pygame.JOYBUTTONDOWN:
+            #    print(event)
             
 
         if pygame.joystick.Joystick(0).get_button(5): slow_speed = 0
@@ -66,7 +66,7 @@ def main(ip_server):
         clientConnected.send(message)
 
         #to slow down the loop because it goes faster than light
-        time.sleep(.01)
+        time.sleep(.05)
         
 if __name__ == "__main__":
     main()

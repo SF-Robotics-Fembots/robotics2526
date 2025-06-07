@@ -19,7 +19,8 @@ def on_release(key):
     global front
     global back
      #the value as global so that we can use it outside of the function
-    if key == Key.tab:
+    print("key pressed")
+    if key == Key.tab:                  
         prev_front = front #set the previous front value to front; will be used to compare changes
         #prev_back = back
 
@@ -89,8 +90,8 @@ def main(ip_address):
     (client_connected, client_address) = server_socket.accept()
    
     #start the listener
+    #        on_press=on_press,
     with Listener(
-        on_press=on_press,
         on_release=on_release) as listener:
         listener.join()
 

@@ -11,6 +11,7 @@ def on_release(key):
     global changed
     global pump
     if key == Key.f1:
+        print("pump press")
         prev_pump = pump #used to compare changes
 
         #check if the value changed
@@ -36,7 +37,9 @@ def on_release(key):
 #write the listener
 def on_press(key):
     #use f1 to press key
-    if key == Key.esc: return False
+    if key == Key.esc: 
+        print("gripper press")
+        return False
 
 
 #main function
