@@ -34,12 +34,12 @@ def main(ip_server):
 	kit = ServoKit(channels=16)
 	shield.frequency = 97
 
-	thrusterChannel1 = shield.channels[14] #15
-	thrusterChannel2 = shield.channels[2] #0
-	thrusterChannel3 = shield.channels[15] #14
-	thrusterChannel4 = shield.channels[0] #2
-	thrusterChannel5 = shield.channels[13] #1
-	thrusterChannel6 = shield.channels[1] #13
+	thrusterChannel1 = shield.channels[7] #15
+	thrusterChannel2 = shield.channels[4] #0
+	thrusterChannel3 = shield.channels[6] #14
+	thrusterChannel4 = shield.channels[3] #2
+	thrusterChannel5 = shield.channels[1] #1
+	thrusterChannel6 = shield.channels[2] #13
 	thrusterChannel1.duty_cycle = 0x2666
 
 	throttle_in = 2200
