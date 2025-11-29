@@ -10,8 +10,8 @@ import socket
 
 #import threaded files
 import thrusters
-import gripper
-import pump
+#import gripper
+#import pump
 
 # library setup
 
