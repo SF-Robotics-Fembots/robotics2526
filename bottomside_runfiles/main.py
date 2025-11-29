@@ -28,7 +28,7 @@ ip_server = "192.168.1.67" #192.168.1.100
 
 thrusterCode = threading.Thread(target=thrusters.main, args = (ip_server,))
 #gripperCode = threading.Thread(target=gripper.main, args=(ip_server,))
-pumpCode = threading.Thread(target=pump.main, args=(ip_server,))
+#pumpCode = threading.Thread(target=pump.main, args=(ip_server,))
 
 
 thrusterCode.start()
