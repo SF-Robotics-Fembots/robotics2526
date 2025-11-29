@@ -47,7 +47,7 @@ def main(ip_server):
 		channel.duty_cycle = throttlePW
 		time.sleep(delay)
 
-	def main(ip_server):
+	def test_sequence(ip_server):
 		channels = [thrusterChannel1, thrusterChannel2, thrusterChannel3, thrusterChannel4, thrusterChannel5, thrusterChannel6]
 		throttle_sequence = [
 			2200,
@@ -64,7 +64,7 @@ def main(ip_server):
 			1500,
 		]
 
-		for channel, throttle in zip(channels. throttle_sequence):
+		for channel, throttle in zip(channels, throttle_sequence):
 			set_throttle(channel, throttle, delay=0)
 
 
