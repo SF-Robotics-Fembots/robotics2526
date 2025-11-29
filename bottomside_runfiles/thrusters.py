@@ -42,65 +42,91 @@ def main(ip_server):
 	thrusterChannel6 = shield.channels[2] #13
 	thrusterChannel1.duty_cycle = 0x2666
 
-	throttle_in = 2200
-	throttlePW = int(throttle_in/10000*65536)
-	thrusterChannel1.duty_cycle = throttlePW
-	time.sleep(0)
+	def set_throttle(channel, throttle_in, delay=0):
+		throttlePW = int(throttle_in / 10000 * 65536)
+		channel.duty_cycle = throttlePW
+		time.sleep(delay)
 
-	throttle_in = 1500
-	throttlePW = int(throttle_in/10000*65536)
-	thrusterChannel1.duty_cycle = throttlePW
-	time.sleep(0)
+	def main(ip_server):
+		channels = [thrusterChannel1, thrusterChannel2, thrusterChannel3, thrusterChannel4, thrusterChannel5, thrusterChannel6]
+		throttle_sequence = [
+			2200,
+			1500,
+			2200,
+			1500,
+			2200,
+			1500,
+			2200,
+			1500,
+			2200,
+			1500,
+			2200,
+			1500,
+		]
 
-	throttle_in = 2200
-	throttlePW = int(throttle_in/10000*65536)
-	thrusterChannel2.duty_cycle = throttlePW
-	time.sleep(0)
+		for channel, throttle in zip(channels. throttle_sequence):
+			set_throttle(channel, throttle, delay=0)
 
-	throttle_in = 1500
-	throttlePW = int(throttle_in/10000*65536)
-	thrusterChannel2.duty_cycle = throttlePW
-	time.sleep(0)
 
-	throttle_in = 2200
-	throttlePW = int(throttle_in/10000*65536)
-	thrusterChannel3.duty_cycle = throttlePW
-	time.sleep(0 )
+	# throttle_in = 2200
+	# throttlePW = int(throttle_in/10000*65536)
+	# thrusterChannel1.duty_cycle = throttlePW
+	# time.sleep(0)
 
-	throttle_in = 1500
-	throttlePW = int(throttle_in/10000*65536)
-	thrusterChannel3.duty_cycle = throttlePW
-	time.sleep(0)
+	# throttle_in = 1500
+	# throttlePW = int(throttle_in/10000*65536)
+	# thrusterChannel1.duty_cycle = throttlePW
+	# time.sleep(0)
 
-	throttle_in = 2200
-	throttlePW = int(throttle_in/10000*65536)
-	thrusterChannel4.duty_cycle = throttlePW
-	time.sleep(0)
+	# throttle_in = 2200
+	# throttlePW = int(throttle_in/10000*65536)
+	# thrusterChannel2.duty_cycle = throttlePW
+	# time.sleep(0)
 
-	throttle_in = 1500
-	throttlePW = int(throttle_in/10000*65536)
-	thrusterChannel4.duty_cycle = throttlePW
-	time.sleep(0)
+	# throttle_in = 1500
+	# throttlePW = int(throttle_in/10000*65536)
+	# thrusterChannel2.duty_cycle = throttlePW
+	# time.sleep(0)
 
-	throttle_in = 2200
-	throttlePW = int(throttle_in/10000*65536)
-	thrusterChannel5.duty_cycle = throttlePW
-	time.sleep(0)
+	# throttle_in = 2200
+	# throttlePW = int(throttle_in/10000*65536)
+	# thrusterChannel3.duty_cycle = throttlePW
+	# time.sleep(0 )
 
-	throttle_in = 1500
-	throttlePW = int(throttle_in/10000*65536)
-	thrusterChannel5.duty_cycle = throttlePW
-	time.sleep(0)
+	# throttle_in = 1500
+	# throttlePW = int(throttle_in/10000*65536)
+	# thrusterChannel3.duty_cycle = throttlePW
+	# time.sleep(0)
 
-	throttle_in = 2200
-	throttlePW = int(throttle_in/10000*65536)
-	thrusterChannel6.duty_cycle = throttlePW
-	time.sleep(0)
+	# throttle_in = 2200
+	# throttlePW = int(throttle_in/10000*65536)
+	# thrusterChannel4.duty_cycle = throttlePW
+	# time.sleep(0)
 
-	throttle_in = 1500
-	throttlePW = int(throttle_in/10000*65536)
-	thrusterChannel6.duty_cycle = throttlePW
-	time.sleep(0)
+	# throttle_in = 1500
+	# throttlePW = int(throttle_in/10000*65536)
+	# thrusterChannel4.duty_cycle = throttlePW
+	# time.sleep(0)
+
+	# throttle_in = 2200
+	# throttlePW = int(throttle_in/10000*65536)
+	# thrusterChannel5.duty_cycle = throttlePW
+	# time.sleep(0)
+
+	# throttle_in = 1500
+	# throttlePW = int(throttle_in/10000*65536)
+	# thrusterChannel5.duty_cycle = throttlePW
+	# time.sleep(0)
+
+	# throttle_in = 2200
+	# throttlePW = int(throttle_in/10000*65536)
+	# thrusterChannel6.duty_cycle = throttlePW
+	# time.sleep(0)
+
+	# throttle_in = 1500
+	# throttlePW = int(throttle_in/10000*65536)
+	# thrusterChannel6.duty_cycle = throttlePW
+	# time.sleep(0)
 	
 	#horizontal thrusters calculations
 	def calcHorizontal(joyValue, thrusterNum, direction):
