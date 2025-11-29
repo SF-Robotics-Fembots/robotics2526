@@ -11,7 +11,7 @@ import gripperServer
 import  pumpServer  
 
 global ip_server
-ip_server = "192.168.1.100"
+ip_server = "192.168.1.68" #192.168.1.100
 
 joystickCode = threading.Thread(target=joyServer.main, args = (ip_server,))
 inverseCode = threading.Thread(target=piServer.main, args = (ip_server,))
