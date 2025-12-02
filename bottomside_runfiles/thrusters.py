@@ -32,7 +32,7 @@ def main(ip_server):
 	#time.sleep(0.01)
 	shield = adafruit_pca9685.PCA9685(i2c)
 	kit = ServoKit(channels=16)
-	shield.frequency = 97
+	shield.frequency = 100
 
 	thrusterChannel1 = shield.channels[10] #15
 	thrusterChannel2 = shield.channels[4] #0
@@ -47,86 +47,86 @@ def main(ip_server):
 		channel.duty_cycle = throttlePW
 		time.sleep(delay)
 
-	def test_sequence(ip_server):
-		channels = [thrusterChannel1, thrusterChannel2, thrusterChannel3, thrusterChannel4, thrusterChannel5, thrusterChannel6]
-		throttle_sequence = [
-			2200,
-			1500,
-			2200,
-			1500,
-			2200,
-			1500,
-			2200,
-			1500,
-			2200,
-			1500,
-			2200,
-			1500,
-		]
+	# def test_sequence(ip_server):
+	# 	channels = [thrusterChannel1, thrusterChannel2, thrusterChannel3, thrusterChannel4, thrusterChannel5, thrusterChannel6]
+	# 	throttle_sequence = [
+	# 		2200,
+	# 		1500,
+	# 		2200,
+	# 		1500,
+	# 		2200,
+	# 		1500,
+	# 		2200,
+	# 		1500,
+	# 		2200,
+	# 		1500,
+	# 		2200,
+	# 		1500,
+	# 	]
 
-		for channel, throttle in zip(channels, throttle_sequence):
-			set_throttle(channel, throttle, delay=0)
+	# 	for channel, throttle in zip(channels, throttle_sequence):
+	# 		set_throttle(channel, throttle, delay=0)
 
 
-	# throttle_in = 2200
-	# throttlePW = int(throttle_in/10000*65536)
-	# thrusterChannel1.duty_cycle = throttlePW
-	# time.sleep(0)
+	throttle_in = 2200
+	throttlePW = int(throttle_in/10000*65536)
+	thrusterChannel1.duty_cycle = throttlePW
+	time.sleep(0)
 
-	# throttle_in = 1500
-	# throttlePW = int(throttle_in/10000*65536)
-	# thrusterChannel1.duty_cycle = throttlePW
-	# time.sleep(0)
+	throttle_in = 1500
+	throttlePW = int(throttle_in/10000*65536)
+	thrusterChannel1.duty_cycle = throttlePW
+	time.sleep(0)
 
-	# throttle_in = 2200
-	# throttlePW = int(throttle_in/10000*65536)
-	# thrusterChannel2.duty_cycle = throttlePW
-	# time.sleep(0)
+	throttle_in = 2200
+	throttlePW = int(throttle_in/10000*65536)
+	thrusterChannel2.duty_cycle = throttlePW
+	time.sleep(0)
 
-	# throttle_in = 1500
-	# throttlePW = int(throttle_in/10000*65536)
-	# thrusterChannel2.duty_cycle = throttlePW
-	# time.sleep(0)
+	throttle_in = 1500
+	throttlePW = int(throttle_in/10000*65536)
+	thrusterChannel2.duty_cycle = throttlePW
+	time.sleep(0)
 
-	# throttle_in = 2200
-	# throttlePW = int(throttle_in/10000*65536)
-	# thrusterChannel3.duty_cycle = throttlePW
-	# time.sleep(0 )
+	throttle_in = 2200
+	throttlePW = int(throttle_in/10000*65536)
+	thrusterChannel3.duty_cycle = throttlePW
+	time.sleep(0 )
 
-	# throttle_in = 1500
-	# throttlePW = int(throttle_in/10000*65536)
-	# thrusterChannel3.duty_cycle = throttlePW
-	# time.sleep(0)
+	throttle_in = 1500
+	throttlePW = int(throttle_in/10000*65536)
+	thrusterChannel3.duty_cycle = throttlePW
+	time.sleep(0)
 
-	# throttle_in = 2200
-	# throttlePW = int(throttle_in/10000*65536)
-	# thrusterChannel4.duty_cycle = throttlePW
-	# time.sleep(0)
+	throttle_in = 2200
+	throttlePW = int(throttle_in/10000*65536)
+	thrusterChannel4.duty_cycle = throttlePW
+	time.sleep(0)
 
-	# throttle_in = 1500
-	# throttlePW = int(throttle_in/10000*65536)
-	# thrusterChannel4.duty_cycle = throttlePW
-	# time.sleep(0)
+	throttle_in = 1500
+	throttlePW = int(throttle_in/10000*65536)
+	thrusterChannel4.duty_cycle = throttlePW
+	time.sleep(0)
 
-	# throttle_in = 2200
-	# throttlePW = int(throttle_in/10000*65536)
-	# thrusterChannel5.duty_cycle = throttlePW
-	# time.sleep(0)
+	throttle_in = 2200
+	throttlePW = int(throttle_in/10000*65536)
+	thrusterChannel5.duty_cycle = throttlePW
+	time.sleep(0)
 
-	# throttle_in = 1500
-	# throttlePW = int(throttle_in/10000*65536)
-	# thrusterChannel5.duty_cycle = throttlePW
-	# time.sleep(0)
+	throttle_in = 1500
+	throttlePW = int(throttle_in/10000*65536)
+	thrusterChannel5.duty_cycle = throttlePW
+	time.sleep(0)
 
-	# throttle_in = 2200
-	# throttlePW = int(throttle_in/10000*65536)
-	# thrusterChannel6.duty_cycle = throttlePW
-	# time.sleep(0)
+	throttle_in = 2200
+	throttlePW = int(throttle_in/10000*65536)
+	thrusterChannel6.duty_cycle = throttlePW
+	time.sleep(0)
 
-	# throttle_in = 1500
-	# throttlePW = int(throttle_in/10000*65536)
-	# thrusterChannel6.duty_cycle = throttlePW
-	# time.sleep(0)
+	throttle_in = 1500
+	throttlePW = int(throttle_in/10000*65536)
+	thrusterChannel6.duty_cycle = throttlePW
+	time.sleep(0)
 	
 	#horizontal thrusters calculations
 	def calcHorizontal(joyValue, thrusterNum, direction):
@@ -145,6 +145,7 @@ def main(ip_server):
 			joyValue = joyValue - ((abs(joyValue)/joyValue) * 10) # was 5
 			return joyValue * direction[thrusterNum]
 			
+	print("about to connect")
 
 	clientSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 	
@@ -153,7 +154,7 @@ def main(ip_server):
 
 	clientSocket.connect((ip_server, 9090))
 	clientSocket1.connect((ip_server, 7070))
-        
+	print("connected")
 	prevX = 0
 	prevY = 0
 	prevV = 0
