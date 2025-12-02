@@ -28,7 +28,7 @@ def main(ip_server):
     slow_speed = 0
 
     while True:
-        #print("joystick loop")
+        print("joystick loop")
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 break
