@@ -31,6 +31,7 @@ def main(ip_server):
 	#i2c.write_byte_data(0x40, 0x00, 0x50)
 	#time.sleep(0.01)
 	shield = adafruit_pca9685.PCA9685(i2c)
+	shield.external_clock = True #enable 25MHz external crystal
 	kit = ServoKit(channels=16)
 	shield.frequency = 100
 
