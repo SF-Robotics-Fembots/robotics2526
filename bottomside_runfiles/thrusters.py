@@ -33,7 +33,7 @@ def main(ip_server):
 	shield = adafruit_pca9685.PCA9685(i2c)
 	shield.external_clock = True #enable 25MHz external crystal
 	kit = ServoKit(channels=16)
-	shield.frequency = 100
+	shield.frequency = 96
 
 	thrusterChannel1 = shield.channels[8]
 	thrusterChannel2 = shield.channels[10]
