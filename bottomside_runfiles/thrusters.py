@@ -32,7 +32,7 @@ def main(ip_server):
 	#time.sleep(0.01)
 	shield = adafruit_pca9685.PCA9685(i2c)
 	kit = ServoKit(channels=16)
-	shield.frequency = 97
+	shield.frequency = 100
 
 	thrusterChannel1 = shield.channels[8]
 	thrusterChannel2 = shield.channels[10]
