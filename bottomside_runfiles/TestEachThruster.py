@@ -173,7 +173,7 @@ def main():
 		time.sleep(.5)
 		throttlePW = int(1500/10000*65536)
 		thrusterChannel5.duty_cycle = throttlePW
-		time.slep(.5)
+		time.sleep(.5)
 		input("Press Enter to continue...")
 
 		print("Testing Thruster 6")
