@@ -33,7 +33,7 @@ def main():
 	shield = adafruit_pca9685.PCA9685(i2c)
 	shield.external_clock = True #enable 25MHz external crystal
 	kit = ServoKit(channels=16)
-	shield.frequency = 96
+	shield.frequency = 98
 
 	thrusterChannel1 = shield.channels[8]
 	thrusterChannel2 = shield.channels[12]
@@ -130,45 +130,45 @@ def main():
 		# main loop
 		#x_speed = x_speed[1:]
 		# loop to collect value for each thruster using horizontal calculation function
-		input("Press Enter to continue...")
 		print("Testing Thruster 1")
+		input("Press Enter to continue...")
 		throttlePW = int(1800/10000*65536)
 		thrusterChannel1.duty_cycle = throttlePW
 		time.sleep(.5)
 		throttlePW = int(1500/10000*65536)
 		thrusterChannel1.duty_cycle = throttlePW
 		time.sleep(.5)
-		input("Press Enter to continue...")
 
 		print("Testing Thruster 2")
+		input("Press Enter to continue...")
 		throttlePW = int(1800/10000*65536)
 		thrusterChannel2.duty_cycle = throttlePW
 		time.sleep(.5)
 		throttlePW = int(1500/10000*65536)
 		thrusterChannel2.duty_cycle = throttlePW
 		time.sleep(.5)
-		input("Press Enter to continue...")
 
 		print("Testing Thruster 3")
+		input("Press Enter to continue...")
 		throttlePW = int(1800/10000*65536)
 		thrusterChannel3.duty_cycle = throttlePW
 		time.sleep(.5)
 		throttlePW = int(1500/10000*65536)
 		thrusterChannel3.duty_cycle = throttlePW
 		time.sleep(.5)
-		input("Press Enter to continue...")
 
 		print("Testing Thruster 4")
+		input("Press Enter to continue...")
 		throttlePW = int(1800/10000*65536)
 		thrusterChannel4.duty_cycle = throttlePW
 		time.sleep(.5)
 		throttlePW = int(1500/10000*65536)
 		thrusterChannel4.duty_cycle = throttlePW
 		time.sleep(.5)
-		input("Press Enter to continue...")
 
 
 		print("Testing Thruster 6")
+		input("Press Enter to continue...")
 		throttlePW = int(1800/10000*65536)
 		thrusterChannel6.duty_cycle = throttlePW
 		time.sleep(.5)
