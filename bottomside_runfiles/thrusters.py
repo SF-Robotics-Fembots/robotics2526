@@ -263,7 +263,7 @@ def main(ip_server):
 			#rDirArray = [-1, 1, 1, -1]
 			#third thruster is now cw so the signs got flipped
             #REMEMBER TO TEST THESE NOW
-			xDirArray = [1*direction, 1*direction, -1*direction, -1*direction]
+			xDirArray = [1*direction, -1*direction, -1*direction, -1*direction]
 			yDirArray = [-1*direction, 1*direction, -1*direction, 1*direction]
 			rDirArray = [1, 1, 1, 1]
 			vDirArray = [1, -1]
