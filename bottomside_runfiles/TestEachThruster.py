@@ -6,7 +6,7 @@ from adafruit_servokit import ServoKit #pip install adafruit-circuitpython-servo
 import time
 import socket, json, sys
 
-def main(ip_server):
+def main():
 	# library setup
 	pygame.init()
 
@@ -175,3 +175,6 @@ def main(ip_server):
 			thrusterChannel6.duty_cycle = throttlePW
 			time.sleep(.5)
 			input("Press Enter to continue...")
+
+if __name__ == "__main__":
+    main(None)
