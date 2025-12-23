@@ -130,6 +130,7 @@ def main():
 		# main loop
 		#x_speed = x_speed[1:]
 		# loop to collect value for each thruster using horizontal calculation function
+		input("Press Enter to continue...")
 		print("Testing Thruster 1")
 		throttlePW = int(1800/10000*65536)
 		thrusterChannel1.duty_cycle = throttlePW
