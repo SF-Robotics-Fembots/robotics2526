@@ -137,13 +137,13 @@ def main():
 			print ("%d   ", i)
 			time.sleep(1)
 			throttlePW = int(2200/10000*65536)
-			thrusterChannel1.duty_cycle = throttlePW
+			thrusterChannel3.duty_cycle = throttlePW
 			time.sleep(.5)
 			throttlePW = int(1000/10000*65536)
-			thrusterChannel1.duty_cycle = throttlePW
+			thrusterChannel3.duty_cycle = throttlePW
 			time.sleep(.5)
 			throttlePW = int(1500/10000*65536)
-			thrusterChannel1.duty_cycle = throttlePW
+			thrusterChannel3.duty_cycle = throttlePW
 			time.sleep(.5)
 			
 if __name__ == "__main__":
