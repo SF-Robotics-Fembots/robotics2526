@@ -128,9 +128,6 @@ def main(ip_server):
 			
 			
 	# main loop
-	while True:
-		try:
-			
 			#x_speed = x_speed[1:]
 			# loop to collect value for each thruster using horizontal calculation function
 			print("Testing Thruster 1")
@@ -178,7 +175,3 @@ def main(ip_server):
 			thrusterChannel6.duty_cycle = throttlePW
 			time.sleep(.5)
 			input("Press Enter to continue...")
-
-
-if __name__ == "__main__":
-    main()
