@@ -36,9 +36,9 @@ def main(ip_server):
 	shield.frequency = 96
 
 	thrusterChannel1 = shield.channels[8]
-	thrusterChannel2 = shield.channels[10]
+	thrusterChannel2 = shield.channels[12]
 	thrusterChannel3 = shield.channels[15]
-	thrusterChannel4 = shield.channels[13]
+	thrusterChannel4 = shield.channels[18]
 	thrusterChannel5 = shield.channels[9] 
 	thrusterChannel6 = shield.channels[14]
 	thrusterChannel1.duty_cycle = 0x2666
