@@ -31,13 +31,14 @@ def main(ip_server):
 	#i2c.write_byte_data(0x40, 0x00, 0x50)
 	#time.sleep(0.01)
 	shield = adafruit_pca9685.PCA9685(i2c)
+	shield.external_clock = True #enable 25MHz external crystal
 	kit = ServoKit(channels=16)
-	shield.frequency = 97
+	shield.frequency = 96
 
 	thrusterChannel1 = shield.channels[8]
-	thrusterChannel2 = shield.channels[10]
+	thrusterChannel2 = shield.channels[12]
 	thrusterChannel3 = shield.channels[15]
-	thrusterChannel4 = shield.channels[13]
+	thrusterChannel4 = shield.channels[11]
 	thrusterChannel5 = shield.channels[9] 
 	thrusterChannel6 = shield.channels[14]
 	thrusterChannel1.duty_cycle = 0x2666
@@ -262,10 +263,11 @@ def main(ip_server):
 			#rDirArray = [-1, 1, 1, -1]
 			#third thruster is now cw so the signs got flipped
             #REMEMBER TO TEST THESE NOW
-			xDirArray = [1*direction, 1*direction, -1*direction, -1*direction]
-			yDirArray = [-1*direction, 1*direction, -1*direction, 1*direction]
+			# FWD/BACK is "Y", SIDE TO SIDE is "X"
+			xDirArray = [1*direction, -1*direction, 1*direction, -1*direction]
+			yDirArray = [-1*direction, -1*direction, 1*direction, 1*direction]
 			rDirArray = [1, 1, 1, 1]
-			vDirArray = [-1, -1]
+			vDirArray = [1, -1]
 
 			# array for each horizontal thruster value
 			oldThrusterVals = [0, 0, 0, 0]
