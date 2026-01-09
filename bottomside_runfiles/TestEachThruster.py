@@ -139,14 +139,14 @@ def main():
 		# thrusterChannel1.duty_cycle = throttlePW
 		# time.sleep(.5)
 
-		# print("Testing Thruster 2")
-		# input("Press Enter to continue...")
-		# throttlePW = int(1800/10000*65536)
-		# thrusterChannel2.duty_cycle = throttlePW
-		# time.sleep(.5)
-		# throttlePW = int(1500/10000*65536)
-		# thrusterChannel2.duty_cycle = throttlePW
-		# time.sleep(.5)
+		print("Testing Thruster 2")
+		input("Press Enter to continue...")
+		throttlePW = int(1800/10000*65536)
+		thrusterChannel2.duty_cycle = throttlePW
+		time.sleep(.5)
+		throttlePW = int(1500/10000*65536)
+		thrusterChannel2.duty_cycle = throttlePW
+		time.sleep(.5)
 
 		print("Testing Thruster 3")
 		input("Press Enter to continue...")
