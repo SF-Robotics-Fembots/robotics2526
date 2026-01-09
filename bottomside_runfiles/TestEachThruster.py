@@ -130,14 +130,14 @@ def main():
 		# main loop
 		#x_speed = x_speed[1:]
 		# loop to collect value for each thruster using horizontal calculation function
-		# print("Testing Thruster 1")
-		# input("Press Enter to continue...")
-		# throttlePW = int(1800/10000*65536)
-		# thrusterChannel1.duty_cycle = throttlePW
-		# time.sleep(.5)
-		# throttlePW = int(1500/10000*65536)
-		# thrusterChannel1.duty_cycle = throttlePW
-		# time.sleep(.5)
+		print("Testing Thruster 1")
+		input("Press Enter to continue...")
+		throttlePW = int(1800/10000*65536)
+		thrusterChannel1.duty_cycle = throttlePW
+		time.sleep(.5)
+		throttlePW = int(1500/10000*65536)
+		thrusterChannel1.duty_cycle = throttlePW
+		time.sleep(.5)
 
 		print("Testing Thruster 2")
 		input("Press Enter to continue...")
@@ -157,34 +157,34 @@ def main():
 		thrusterChannel3.duty_cycle = throttlePW
 		time.sleep(.5)
 
-		# print("Testing Thruster 4")
-		# input("Press Enter to continue...")
-		# throttlePW = int(1800/10000*65536)
-		# thrusterChannel4.duty_cycle = throttlePW
-		# time.sleep(.5)
-		# throttlePW = int(1500/10000*65536)
-		# thrusterChannel4.duty_cycle = throttlePW
-		# time.sleep(.5)
+		print("Testing Thruster 4")
+		input("Press Enter to continue...")
+		throttlePW = int(1800/10000*65536)
+		thrusterChannel4.duty_cycle = throttlePW
+		time.sleep(.5)
+		throttlePW = int(1500/10000*65536)
+		thrusterChannel4.duty_cycle = throttlePW
+		time.sleep(.5)
 
-		# print("Testing Thruster 5")
-		# input("Press Enter to continue...")
-		# throttlePW = int(1800/10000*65536)
-		# thrusterChannel5.duty_cycle = throttlePW
-		# time.sleep(.5)
-		# throttlePW = int(1500/10000*65536)
-		# thrusterChannel5.duty_cycle = throttlePW
-		# time.sleep(.5)
-		# input("Press Enter to continue...")
+		print("Testing Thruster 5")
+		input("Press Enter to continue...")
+		throttlePW = int(1800/10000*65536)
+		thrusterChannel5.duty_cycle = throttlePW
+		time.sleep(.5)
+		throttlePW = int(1500/10000*65536)
+		thrusterChannel5.duty_cycle = throttlePW
+		time.sleep(.5)
+		input("Press Enter to continue...")
 
-		# print("Testing Thruster 6")
-		# input("Press Enter to continue...")
-		# throttlePW = int(1800/10000*65536)
-		# thrusterChannel6.duty_cycle = throttlePW
-		# time.sleep(.5)
-		# throttlePW = int(1500/10000*65536)
-		# thrusterChannel6.duty_cycle = throttlePW
-		# time.sleep(.5)
-		# input("Press Enter to continue...")
+		print("Testing Thruster 6")
+		input("Press Enter to continue...")
+		throttlePW = int(1800/10000*65536)
+		thrusterChannel6.duty_cycle = throttlePW
+		time.sleep(.5)
+		throttlePW = int(1500/10000*65536)
+		thrusterChannel6.duty_cycle = throttlePW
+		time.sleep(.5)
+		input("Press Enter to continue...")
 
 if __name__ == "__main__":
 	main()
