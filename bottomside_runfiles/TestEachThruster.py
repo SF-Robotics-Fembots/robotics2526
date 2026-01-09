@@ -174,7 +174,7 @@ def main():
 		throttlePW = int(1500/10000*65536)
 		thrusterChannel5.duty_cycle = throttlePW
 		time.sleep(.5)
-		input("Press Enter to continue...")
+		# input("Press Enter to continue...")
 
 		print("Testing Thruster 6")
 		input("Press Enter to continue...")
@@ -184,7 +184,7 @@ def main():
 		throttlePW = int(1500/10000*65536)
 		thrusterChannel6.duty_cycle = throttlePW
 		time.sleep(.5)
-		input("Press Enter to continue...")
+		# input("Press Enter to continue...")
 
 if __name__ == "__main__":
 	main()
