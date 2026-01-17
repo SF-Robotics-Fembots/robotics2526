@@ -8,7 +8,7 @@ import threading
 import joyServer
 import piServer
 #import gripperServer
-#mport pumpServer  
+import laserServer  
 
 global ip_server
 ip_server = "192.168.1.67" #192.168.1.100
@@ -16,14 +16,14 @@ ip_server = "192.168.1.67" #192.168.1.100
 joystickCode = threading.Thread(target=joyServer.main, args = (ip_server,))
 inverseCode = threading.Thread(target=piServer.main, args = (ip_server,))
 #gripperCode = threading.Thread(target=gripperServer.main, args=(ip_server,))
-#pumpCode = threading.Thread(target=pumpServer.main, args=(ip_server,))
+laserCode = threading.Thread(target=laserServer.main, args=(ip_server,))
 
 
 
 joystickCode.start()                                                                                                                            
 inverseCode.start()
 #gripperCode.start()
-#pumpCode.start()
+laserCode.start()
 
 
 
@@ -31,4 +31,4 @@ inverseCode.start()
 joystickCode.join()
 inverseCode.join()
 #gripperCode.join()
-#pumpCode.join()
+laserCode.join()
