@@ -37,6 +37,22 @@ def main(argv):
 
     desired_value = 1 if argv[1] == "1" else 0
 
+    # Preferred API in libgpiod v2 python bindings.
+    if (hasattr(gpiod, "request_lines")
+            and hasattr(gpiod, "LineSettings")
+            and hasattr(gpiod, "Direction")
+            and hasattr(gpiod, "Value")):
+        settings = gpiod.LineSettings(
+            direction=gpiod.Direction.OUTPUT,
+            output_value=gpiod.Value.INACTIVE,
+        )
+        with gpiod.request_lines(GPIO_CHIP, consumer="LED", config={
+            PUMP_GPIO: settings
+        }) as request:
+            desired = gpiod.Value.ACTIVE if desired_value == 1 else gpiod.Value.INACTIVE
+            request.set_value(PUMP_GPIO, desired)
+        return 0
+
     chip = _open_chip(GPIO_CHIP)
     line = chip.get_line(PUMP_GPIO)
     _request_output(line, desired_value)
