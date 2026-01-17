@@ -1,3 +1,5 @@
 pygame
 hid
 hidapi
+pynput
+keyboad

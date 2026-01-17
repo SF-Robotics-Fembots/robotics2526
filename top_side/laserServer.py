@@ -19,7 +19,7 @@ def on_release(key):
         else: laser = 0
 
         laser_vals = {
-            "laser" : laser
+            "lasers" : laser
         }
 
         message = json.dumps(laser_vals)
