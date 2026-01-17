@@ -38,9 +38,9 @@ def main(ip_server):
             #    print(event)
             
 
-        if pygame.joystick.Joystick(0).get_button(5): slow_speed = 0 #STOP
-        if pygame.joystick.Joystick(0).get_button(3): slow_speed = 1 #FAST
-        if pygame.joystick.Joystick(0).get_button(2): slow_speed = 0.5 #SLOW #PICKED_RANDOM_BUTTON_DECIDE_LATER
+        if pygame.joystick.Joystick(0).get_button(2): slow_speed = 0 #STOP
+        if pygame.joystick.Joystick(0).get_button(5): slow_speed = 1 #FAST
+        if pygame.joystick.Joystick(0).get_button(3): slow_speed = 0.5 #SLOW #PICKED_RANDOM_BUTTON_DECIDE_LATER
 
         x_speed = (pygame.joystick.Joystick(0).get_axis(0))
         if slow_speed: x_speed = x_speed*ratio
