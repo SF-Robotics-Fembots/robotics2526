@@ -2,6 +2,8 @@ import time, lgpio, gpiod
 from gpiod.line import Direction, Value
 import socket, json
 
+#test...
+
 #variables
 #ip_address = "192.168.1.100"
 port = 3030
