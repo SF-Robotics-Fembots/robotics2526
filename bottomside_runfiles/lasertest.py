@@ -5,6 +5,31 @@ PUMP_GPIO = 23
 GPIO_CHIP = "/dev/gpiochip4"
 
 
+def _open_chip(path):
+    if hasattr(gpiod, "chip"):
+        return gpiod.chip(path)
+    return gpiod.Chip(path)
+
+
+def _request_output(line, value):
+    # libgpiod v1 API
+    if hasattr(gpiod, "LINE_REQ_DIR_OUT"):
+        line.request(consumer="LED", type=gpiod.LINE_REQ_DIR_OUT)
+        line.set_value(value)
+        return
+
+    # libgpiod v2 C++ bindings API
+    if hasattr(gpiod, "LineRequest"):
+        request = gpiod.LineRequest()
+        request.consumer = "LED"
+        if hasattr(gpiod.LineRequest, "DIRECTION_OUTPUT"):
+            request.request_type = gpiod.LineRequest.DIRECTION_OUTPUT
+        line.request(request, value)
+        return
+
+    raise RuntimeError("Unsupported gpiod API; cannot request output line.")
+
+
 def main(argv):
     if len(argv) != 2 or argv[1] not in ("0", "1"):
         print("Usage: python3 lasertest.py 0|1")
@@ -12,11 +37,9 @@ def main(argv):
 
     desired_value = 1 if argv[1] == "1" else 0
 
-    # Older gpiod API: open chip, request line, set value, then release.
-    chip = gpiod.chip(GPIO_CHIP)
+    chip = _open_chip(GPIO_CHIP)
     line = chip.get_line(PUMP_GPIO)
-    line.request(consumer="LED", type=gpiod.LINE_REQ_DIR_OUT)
-    line.set_value(desired_value)
+    _request_output(line, desired_value)
     line.release()
     chip.close()
 
