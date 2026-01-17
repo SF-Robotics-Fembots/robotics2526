@@ -1,5 +1,5 @@
 import threading
-import socket, hid, json
+import socket, json
 import time, pynput, keyboard
 from pynput.keyboard import Key, Listener 
 #set the port to use in threading
