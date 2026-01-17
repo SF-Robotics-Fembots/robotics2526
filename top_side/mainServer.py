@@ -7,8 +7,8 @@ import threading
 #import the threaded files
 import joyServer
 import piServer
-import gripperServer
-import pumpServer  
+#import gripperServer
+#mport pumpServer  
 
 global ip_server
 ip_server = "192.168.1.67" #192.168.1.100
