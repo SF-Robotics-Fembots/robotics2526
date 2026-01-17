@@ -13,7 +13,7 @@ def main(argv):
     desired_value = 1 if argv[1] == "1" else 0
 
     # Older gpiod API: open chip, request line, set value, then release.
-    chip = gpiod.Chip(GPIO_CHIP)
+    chip = gpiod.chip(GPIO_CHIP)
     line = chip.get_line(PUMP_GPIO)
     line.request(consumer="LED", type=gpiod.LINE_REQ_DIR_OUT)
     line.set_value(desired_value)
