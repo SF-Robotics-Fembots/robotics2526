@@ -5,28 +5,28 @@ from pynput.keyboard import Key, Listener
 #set the port to use in threading
 port = 3030
 #ip_address = "192.168.1.100"
-pump = 0 #start off
+laser = 0 #start off
 
 def on_release(key):
     global changed
-    global pump
+    global laser
     if key == Key.f1:
-        print("pump press")
-        prev_pump = pump #used to compare changes
+        print("laser press")
+        prev_laser = laser #used to compare changes
 
         #check if the value changed
-        if pump == 0: pump = 1
-        else: pump = 0
+        if laser == 0: laser = 1
+        else: laser = 0
 
-        pump_vals = {
-            "pump" : pump
+        laser_vals = {
+            "laser" : laser
         }
 
-        message = json.dumps(pump_vals)
+        message = json.dumps(laser_vals)
         message = message.encode()
 
         #check if changed
-        if prev_pump != pump:
+        if prev_laser!= laser:
             print(message)
             client_connected.send(message)
 
