@@ -1,4 +1,5 @@
 import gpiod
+import lgpio
 import sys
 
 PUMP_GPIO = 23
@@ -30,6 +31,14 @@ def _request_output(line, value):
     raise RuntimeError("Unsupported gpiod API; cannot request output line.")
 
 
+def _lgpio_write(path, line, value):
+    chip_num = int(path.replace("/dev/gpiochip", ""))
+    handle = lgpio.gpiochip_open(chip_num)
+    lgpio.gpio_claim_output(handle, line)
+    lgpio.gpio_write(handle, line, value)
+    lgpio.gpiochip_close(handle)
+
+
 def main(argv):
     if len(argv) != 2 or argv[1] not in ("0", "1"):
         print("Usage: python3 lasertest.py 0|1")
@@ -53,11 +62,14 @@ def main(argv):
             request.set_value(PUMP_GPIO, desired)
         return 0
 
-    chip = _open_chip(GPIO_CHIP)
-    line = chip.get_line(PUMP_GPIO)
-    _request_output(line, desired_value)
-    line.release()
-    chip.close()
+    try:
+        chip = _open_chip(GPIO_CHIP)
+        line = chip.get_line(PUMP_GPIO)
+        _request_output(line, desired_value)
+        line.release()
+        chip.close()
+    except RuntimeError:
+        _lgpio_write(GPIO_CHIP, PUMP_GPIO, desired_value)
 
     return 0
 
