@@ -1,5 +1,4 @@
 import gpiod
-from gpiod.line import Direction, Value
 import sys
 
 PUMP_GPIO = 23
@@ -11,15 +10,15 @@ def main(argv):
         print("Usage: python3 lasertest.py 0|1")
         return 2
 
-    desired_value = Value.ACTIVE if argv[1] == "1" else Value.INACTIVE
+    desired_value = 1 if argv[1] == "1" else 0
 
-    # GPIO setup and write once.
-    with gpiod.request_lines(GPIO_CHIP, consumer="LED", config={
-        PUMP_GPIO: gpiod.LineSettings(
-            direction=Direction.OUTPUT, output_value=Value.INACTIVE
-        )
-    }) as request:
-        request.set_value(PUMP_GPIO, desired_value)
+    # Older gpiod API: open chip, request line, set value, then release.
+    chip = gpiod.Chip(GPIO_CHIP)
+    line = chip.get_line(PUMP_GPIO)
+    line.request(consumer="LED", type=gpiod.LINE_REQ_DIR_OUT)
+    line.set_value(desired_value)
+    line.release()
+    chip.close()
 
     return 0
 
