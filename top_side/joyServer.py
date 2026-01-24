@@ -67,7 +67,7 @@ def main(ip_server):
         clientConnected.send(message)
 
         #to slow down the loop because it goes faster than light
-        time.sleep(.02) #.05
+        time.sleep(.04) #.05
         
 if __name__ == "__main__":
     main()
