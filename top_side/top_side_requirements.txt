@@ -2,4 +2,4 @@ pygame
 hid
 hidapi
 pynput
-keyboad
+keyboard
