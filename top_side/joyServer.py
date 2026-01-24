@@ -26,6 +26,7 @@ def main(ip_server):
     
     #the speed is initially set to fast
     slow_speed = 0
+    prev_mode = slow_speed
 
     while True:
         print("joystick loop")
@@ -42,6 +43,15 @@ def main(ip_server):
         if pygame.joystick.Joystick(0).get_button(5): slow_speed = 1 #FAST
         if pygame.joystick.Joystick(0).get_button(3): slow_speed = 0.5 #SLOW #PICKED_RANDOM_BUTTON_DECIDE_LATER
 
+        if slow_speed != prev_mode:
+            if slow_speed == 1:
+                print ("Fast Mode")
+            elif slow_speed == 0.5:
+                print ("Slow Mode")
+            elif slow_speed == 0:
+                print ("Stop Mode")
+        prev_mode = slow_speed
+        
         x_speed = (pygame.joystick.Joystick(0).get_axis(0))
         if slow_speed: x_speed = x_speed*ratio
         
