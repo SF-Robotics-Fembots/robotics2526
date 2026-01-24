@@ -43,6 +43,15 @@ def main(ip_server):
 	thrusterChannel6 = shield.channels[14]
 	thrusterChannel1.duty_cycle = 0x2666
 
+	thrusters = [
+		thrusterChannel1,
+		thrusterChannel2,
+		thrusterChannel3,
+		thrusterChannel4,
+		thrusterChannel5,
+		thrusterChannel6
+	]
+
 	def set_throttle(channel, throttle_in, delay=0):
 		throttlePW = int(throttle_in / 10000 * 65536)
 		channel.duty_cycle = throttlePW
@@ -354,31 +363,42 @@ def main(ip_server):
 
 			#print("third print")
 			#debug_l2 = 1
-			if debug_l2: print(powerThrusterVals)
+			
+			#made changes starting here for duty cycle
+			#if debug_l2: print(powerThrusterVals)
 
-			print(f"T1: {powerThrusterVals[0]}")
-			throttlePW = int(powerThrusterVals[0]/10000*65536)
-			thrusterChannel1.duty_cycle = throttlePW
+			# #print(f"T1: {powerThrusterVals[0]}")
+			# throttlePW = int(powerThrusterVals[0]/10000*65536)
+			# thrusterChannel1.duty_cycle = throttlePW
 
-			print(f"T2: {powerThrusterVals[1]}")
-			throttlePW = int(powerThrusterVals[1]/10000*65536)
-			thrusterChannel2.duty_cycle = throttlePW
+			# #print(f"T2: {powerThrusterVals[1]}")
+			# throttlePW = int(powerThrusterVals[1]/10000*65536)
+			# thrusterChannel2.duty_cycle = throttlePW
 
-			print(f"T3: {powerThrusterVals[2]}")
-			throttlePW = int(powerThrusterVals[2]/10000*65536)
-			thrusterChannel3.duty_cycle = throttlePW
+			# #print(f"T3: {powerThrusterVals[2]}")
+			# throttlePW = int(powerThrusterVals[2]/10000*65536)
+			# thrusterChannel3.duty_cycle = throttlePW
 
-			print(f"T4: {powerThrusterVals[0]}")
-			throttlePW = int(powerThrusterVals[3]/10000*65536)
-			thrusterChannel4.duty_cycle = throttlePW
+			# #print(f"T4: {powerThrusterVals[0]}")
+			# throttlePW = int(powerThrusterVals[3]/10000*65536)
+			# thrusterChannel4.duty_cycle = throttlePW
 
-			print(f"T5: {powerThrusterVals[0]}")
-			throttlePW = int(powerVertThrusterVals[0]/10000*65536)
-			thrusterChannel5.duty_cycle = throttlePW
+			# #print(f"T5: {powerThrusterVals[0]}")
+			# throttlePW = int(powerVertThrusterVals[0]/10000*65536)
+			# thrusterChannel5.duty_cycle = throttlePW
 
-			print(f"T6: {powerThrusterVals[1]}")
-			throttlePW = int(powerVertThrusterVals[1]/10000*65536)
-			thrusterChannel6.duty_cycle = throttlePW
+			# #print(f"T6: {powerThrusterVals[1]}")
+			# throttlePW = int(powerVertThrusterVals[1]/10000*65536)
+			# thrusterChannel6.duty_cycle = throttlePW
+
+			allPowerVals = powerThrusterVals + powerVertThrusterVals
+
+			for i in range(6):
+				if debug_l2:
+					print(f"T{i+1}: {allPowerVals[i]}")
+
+				throttlePW = int(allPowerVals[i] / 10000 * 65536)
+				thrusters[i].duty_cycle = throttlePW
 
 		except ValueError:
 			print("Error")
