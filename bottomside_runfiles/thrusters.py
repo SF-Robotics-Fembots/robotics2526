@@ -172,7 +172,7 @@ def main(ip_server):
 			first_dict_end = dataFraud.find("}")
 			dataFraud = dataFraud[0:(first_dict_end+1)]
 			thrusterMovements = json.loads(dataFraud)
-			print(thrusterMovements)
+			#print(thrusterMovements)
 			#time.sleep(1)
 			if debug_l2: print("datafraud: " + dataFraud)
 			data = (clientSocket.recv(1024)).decode()
