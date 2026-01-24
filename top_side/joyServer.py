@@ -3,9 +3,6 @@ import socket
 import time, json
 
 #global ip_server
-
-
-
 def main(ip_server):
     serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     print(ip_server)
