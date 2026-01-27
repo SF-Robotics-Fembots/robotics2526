@@ -6,10 +6,6 @@ import time, json
 def main(ip_server):
     serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     print(ip_server)
-
-    #assign a ratio value
-    ratio = 0.6 #60% speed
-        # do we still need this ratio value???
     
     pygame.joystick.init()
     joysticks = [pygame.joystick.Joystick(x) for x in range(pygame.joystick.get_count())]
@@ -27,6 +23,9 @@ def main(ip_server):
     # prev_mode = slow_speed
     mode = 1
     prev_mode = mode
+    #assign a ratio value
+    ratio = 0.6 #60% speed
+        # do we still need this ratio value???
 
     while True:
         #print("joystick loop")
@@ -42,7 +41,7 @@ def main(ip_server):
         # if pygame.joystick.Joystick(0).get_button(4): mode = 1 #FAST - button 5
         # if pygame.joystick.Joystick(0).get_button(2):mode = 0.5 #SLOW #PICKED_RANDOM_BUTTON_DECIDE_LATER - button 3
         elif pygame.joystick.Joystick(0).get_button(4): mode = 1 #FAST - button 5
-        elif pygame.joystick.Joystick(0).get_button(2):mode = 0.5
+        elif pygame.joystick.Joystick(0).get_button(2): mode = 0.5 #ratio
 
         x_speed = (pygame.joystick.Joystick(0).get_axis(0))
         #if slow_speed: x_speed = x_speed*ratio
@@ -55,7 +54,12 @@ def main(ip_server):
         r_speed *= mode
         v_speed = (pygame.joystick.Joystick(0).get_axis(3))
         v_speed *= mode
+
+        #change speeds to 0 if in stop mode
+        if mode == 0:
+            x_speed = y_speed = r_speed = v_speed = 0
       
+        #check if mode has changed
         if mode != prev_mode:
             if mode == 1:
                 print ("FAST MODE")
