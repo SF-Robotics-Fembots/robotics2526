@@ -367,38 +367,47 @@ def main(ip_server):
 			#made changes starting here for duty cycle
 			if debug_l2: print(powerThrusterVals)
 
-			#print(f"T1: {powerThrusterVals[0]}")
 			throttlePW = int(powerThrusterVals[0]/10000*65536)
 			thrusterChannel1.duty_cycle = throttlePW
 
-			#print(f"T2: {powerThrusterVals[1]}")
 			throttlePW = int(powerThrusterVals[1]/10000*65536)
 			thrusterChannel2.duty_cycle = throttlePW
 
-			#print(f"T3: {powerThrusterVals[2]}")
 			throttlePW = int(powerThrusterVals[2]/10000*65536)
 			thrusterChannel3.duty_cycle = throttlePW
 
-			#print(f"T4: {powerThrusterVals[0]}")
 			throttlePW = int(powerThrusterVals[3]/10000*65536)
 			thrusterChannel4.duty_cycle = throttlePW
 
-			#print(f"T5: {powerThrusterVals[0]}")
 			throttlePW = int(powerVertThrusterVals[0]/10000*65536)
 			thrusterChannel5.duty_cycle = throttlePW
 
-			#print(f"T6: {powerThrusterVals[1]}")
 			throttlePW = int(powerVertThrusterVals[1]/10000*65536)
 			thrusterChannel6.duty_cycle = throttlePW
 
+			# Combine horizontal and vertical thruster values
 			# allPowerVals = powerThrusterVals + powerVertThrusterVals
 
-			# for i in range(6):
-			# 	if debug_l2:
-			# 		print(f"T{i+1}: {allPowerVals[i]}")
+			# # Combine corresponding thruster objects
+			# allThrusters = [
+			# 	thrusterChannel1,
+			# 	thrusterChannel2,
+			# 	thrusterChannel3,
+			# 	thrusterChannel4,
+			# 	thrusterChannel5,
+			# 	thrusterChannel6
+			# ]
 
-			# 	throttlePW = int(allPowerVals[i] / 10000 * 65536)
-			# 	thrusters[i].duty_cycle = throttlePW
+			# # Apply PWM to each thruster and print values in a single row
+			# for thruster, val in zip(allThrusters, allPowerVals):
+			# 	thruster.duty_cycle = int(val / 10000 * 65536)
+
+			#print(*allPowerVals)
+
+			# # Print PWM values in a single row with labels
+			# labels = ["T1", "T2", "T3", "T4", "T5", "T6"]
+			# print(" | ".join(f"{label}:{val}" for label, val in zip(labels, allPowerVals)))
+
 
 		except ValueError:
 			print("Error")
