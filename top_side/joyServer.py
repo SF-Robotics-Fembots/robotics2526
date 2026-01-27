@@ -9,6 +9,7 @@ def main(ip_server):
 
     #assign a ratio value
     ratio = 0.6 #60% speed
+        # do we still need this ratio value???
     
     pygame.joystick.init()
     joysticks = [pygame.joystick.Joystick(x) for x in range(pygame.joystick.get_count())]
@@ -22,11 +23,13 @@ def main(ip_server):
     (clientConnected, clientAddress) = serverSocket.accept()
     
     #the speed is initially set to fast
-    slow_speed = 0
-    prev_mode = slow_speed
+    # slow_speed = 0
+    # prev_mode = slow_speed
+    mode = 1
+    prev_mode = mode
 
     while True:
-        print("joystick loop")
+        #print("joystick loop")
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 break
@@ -34,31 +37,32 @@ def main(ip_server):
             #    print(event)
             #if event.type == pygame.JOYBUTTONDOWN:
             #    print(event)
-            
 
-        if pygame.joystick.Joystick(0).get_button(1): slow_speed = 0 #STOP - button 2
-        if pygame.joystick.Joystick(0).get_button(4): slow_speed = 1 #FAST - button 5
-        if pygame.joystick.Joystick(0).get_button(2): slow_speed = 0.5 #SLOW #PICKED_RANDOM_BUTTON_DECIDE_LATER - button 3
+        if pygame.joystick.Joystick(0).get_button(1): mode = 0 #STOP - button 2
+        if pygame.joystick.Joystick(0).get_button(4): mode = 1 #FAST - button 5
+        if pygame.joystick.Joystick(0).get_button(2):mode = 0.5 #SLOW #PICKED_RANDOM_BUTTON_DECIDE_LATER - button 3
 
         x_speed = (pygame.joystick.Joystick(0).get_axis(0))
-        if slow_speed: x_speed = x_speed*ratio
-        
+        #if slow_speed: x_speed = x_speed*ratio
+        x_speed *= mode
         y_speed = (pygame.joystick.Joystick(0).get_axis(1))
-        if slow_speed: y_speed = y_speed*ratio
-       
+        #if slow_speed: y_speed = y_speed*ratio
+        y_speed *= mode
         r_speed = (pygame.joystick.Joystick(0).get_axis(2))
-        if slow_speed: r_speed = r_speed*ratio
-       
+        #if slow_speed: r_speed = r_speed*ratio
+        r_speed *= mode
         v_speed = (pygame.joystick.Joystick(0).get_axis(3))
+        v_speed *= mode
+      
+        if mode != prev_mode:
+            if mode == 1:
+                print ("FAST MODE")
+            elif mode == 0.5:
+                print ("SLOW MODE")
+            elif mode == 0:
+                print ("STOP MODE")
+        prev_mode = mode
 
-        if slow_speed != prev_mode:
-            if slow_speed == 1:
-                print ("Fast Mode")
-            elif slow_speed == 0.5:
-                print ("Slow Mode")
-            elif slow_speed == 0:
-                print ("Stop Mode")
-        prev_mode = slow_speed
         #put the thruster values in the dictionary
         thrusterMovements = {
             'x_speed' : x_speed,
