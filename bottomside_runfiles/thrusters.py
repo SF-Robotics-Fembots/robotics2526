@@ -402,7 +402,7 @@ def main(ip_server):
 			for thruster, val in zip(allThrusters, allPowerVals):
 				thruster.duty_cycle = int(val / 10000 * 65536)
 
-			print(*allPowerVals)
+			#print(*allPowerVals)
 
 			# Print PWM values in a single row with labels
 			labels = ["T1", "T2", "T3", "T4", "T5", "T6"]
