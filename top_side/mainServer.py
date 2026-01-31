@@ -23,9 +23,7 @@ laserCode = threading.Thread(target=laserServer.main, args=(ip_server,))
 joystickCode.start()                                                                                                                            
 inverseCode.start()
 #gripperCode.start()
-laserCode.start()
-
-
+laserCode.start()\
 
 
 joystickCode.join()
