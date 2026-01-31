@@ -11,7 +11,7 @@ import socket
 #import threaded files
 import thrusters
 #import gripper
-import laser
+import lasers
 
 # library setup
 
@@ -28,14 +28,14 @@ ip_server = "192.168.1.67" #192.168.1.100
 
 thrusterCode = threading.Thread(target=thrusters.main, args = (ip_server,))
 #gripperCode = threading.Thread(target=gripper.main, args=(ip_server,))
-laserCode = threading.Thread(target=laser.main, args=(ip_server,))
+lasersCode = threading.Thread(target=lasers.main, args=(ip_server,))
 
 print ("heeeeyyyyy")
 
 thrusterCode.start()
 #gripperCode.start()
-laserCode.start()
+lasersCode.start()
 
 thrusterCode.join()
 #gripperCode.join()
-laserCode.join()
+lasersCode.join()
