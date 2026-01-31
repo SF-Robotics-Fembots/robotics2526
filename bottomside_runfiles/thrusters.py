@@ -385,28 +385,28 @@ def main(ip_server):
 			throttlePW = int(powerVertThrusterVals[1]/10000*65536)
 			thrusterChannel6.duty_cycle = throttlePW
 
-			# Combine horizontal and vertical thruster values
-			# allPowerVals = powerThrusterVals + powerVertThrusterVals
+			#Combine horizontal and vertical thruster values
+			allPowerVals = powerThrusterVals + powerVertThrusterVals
 
-			# # Combine corresponding thruster objects
-			# allThrusters = [
-			# 	thrusterChannel1,
-			# 	thrusterChannel2,
-			# 	thrusterChannel3,
-			# 	thrusterChannel4,
-			# 	thrusterChannel5,
-			# 	thrusterChannel6
-			# ]
+			# Combine corresponding thruster objects
+			allThrusters = [
+				thrusterChannel1,
+				thrusterChannel2,
+				thrusterChannel3,
+				thrusterChannel4,
+				thrusterChannel5,
+				thrusterChannel6
+			]
 
-			# # Apply PWM to each thruster and print values in a single row
-			# for thruster, val in zip(allThrusters, allPowerVals):
-			# 	thruster.duty_cycle = int(val / 10000 * 65536)
+			# Apply PWM to each thruster and print values in a single row
+			for thruster, val in zip(allThrusters, allPowerVals):
+				thruster.duty_cycle = int(val / 10000 * 65536)
 
-			#print(*allPowerVals)
+			print(*allPowerVals)
 
-			# # Print PWM values in a single row with labels
-			# labels = ["T1", "T2", "T3", "T4", "T5", "T6"]
-			# print(" | ".join(f"{label}:{val}" for label, val in zip(labels, allPowerVals)))
+			# Print PWM values in a single row with labels
+			labels = ["T1", "T2", "T3", "T4", "T5", "T6"]
+			print(" | ".join(f"{label}:{val}" for label, val in zip(labels, allPowerVals)))
 
 
 		except ValueError:
