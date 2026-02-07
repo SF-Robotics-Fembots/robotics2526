@@ -2,7 +2,7 @@ import gpiod
 import lgpio
 import sys
 
-PUMP_GPIO = 23
+PUMP_GPIO = 10
 GPIO_CHIP = "/dev/gpiochip4"
 
 
