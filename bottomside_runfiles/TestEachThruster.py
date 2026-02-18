@@ -11,7 +11,7 @@ def main():
 	pygame.init()
 
 	wait_time = 0.5
-	go_fwd = 1800
+	go_fwd = 1600
 
 #checking
 # 	
