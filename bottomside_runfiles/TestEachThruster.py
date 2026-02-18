@@ -13,6 +13,9 @@ def main():
 	wait_time = 0.5
 	go_fwd = 1800
 
+#checking
+# 	
+
 	#setting up the median of the 'off' values for the thrusters
 	horiz_off_value = 1500
 	horiz_thrust_offset = 0
