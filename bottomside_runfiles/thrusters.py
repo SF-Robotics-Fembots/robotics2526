@@ -267,7 +267,7 @@ def main(ip_server):
 			xDirArray = [1*direction, -1*direction, 1*direction, -1*direction]
 			yDirArray = [-1*direction, -1*direction, 1*direction, 1*direction]
 			rDirArray = [1, 1, 1, 1]
-			vDirArray = [1, -1]
+			vDirArray = [-1, 1]
 
 			# array for each horizontal thruster value
 			oldThrusterVals = [0, 0, 0, 0]
