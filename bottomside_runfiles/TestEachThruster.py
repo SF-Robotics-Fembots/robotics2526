@@ -10,6 +10,9 @@ def main():
 	# library setup
 	pygame.init()
 
+	wait_time = 0.5
+	go_fwd = 1800
+
 	#setting up the median of the 'off' values for the thrusters
 	horiz_off_value = 1500
 	horiz_thrust_offset = 0
@@ -35,13 +38,15 @@ def main():
 	kit = ServoKit(channels=16)
 	shield.frequency = 96
 
-	thrusterChannel1 = shield.channels[8]
-	thrusterChannel2 = shield.channels[12]
-	thrusterChannel3 = shield.channels[13]
-	thrusterChannel4 = shield.channels[11]
-	thrusterChannel5 = shield.channels[9] 
-	thrusterChannel6 = shield.channels[14]
-	thrusterChannel1.duty_cycle = 0x2666
+	thrusterChannels = [
+		shield.channels[8],  # Thruster 1
+		shield.channels[12], # Thruster 2
+		shield.channels[13], # Thruster 3
+		shield.channels[11], # Thruster 4
+		shield.channels[9],  # Thruster 5
+		shield.channels[14], # Thruster 6
+	]
+	thrusterChannels[0].duty_cycle = 0x2666
 
 	def set_throttle(channel, throttle_in, delay=0):
 		throttlePW = int(throttle_in / 10000 * 65536)
@@ -49,65 +54,13 @@ def main():
 		time.sleep(delay)
 
 
-	throttle_in = 2200
-	throttlePW = int(throttle_in/10000*65536)
-	thrusterChannel1.duty_cycle = throttlePW
-	time.sleep(0)
-
-	throttle_in = 1500
-	throttlePW = int(throttle_in/10000*65536)
-	thrusterChannel1.duty_cycle = throttlePW
-	time.sleep(0)
-
-	throttle_in = 2200
-	throttlePW = int(throttle_in/10000*65536)
-	thrusterChannel2.duty_cycle = throttlePW
-	time.sleep(0)
-
-	throttle_in = 1500
-	throttlePW = int(throttle_in/10000*65536)
-	thrusterChannel2.duty_cycle = throttlePW
-	time.sleep(0)
-
-	throttle_in = 2200
-	throttlePW = int(throttle_in/10000*65536)
-	thrusterChannel3.duty_cycle = throttlePW
-	time.sleep(0 )
-
-	throttle_in = 1500
-	throttlePW = int(throttle_in/10000*65536)
-	thrusterChannel3.duty_cycle = throttlePW
-	time.sleep(0)
-
-	throttle_in = 2200
-	throttlePW = int(throttle_in/10000*65536)
-	thrusterChannel4.duty_cycle = throttlePW
-	time.sleep(0)
-
-	throttle_in = 1500
-	throttlePW = int(throttle_in/10000*65536)
-	thrusterChannel4.duty_cycle = throttlePW
-	time.sleep(0)
-
-	throttle_in = 2200
-	throttlePW = int(throttle_in/10000*65536)
-	thrusterChannel5.duty_cycle = throttlePW
-	time.sleep(0)
-
-	throttle_in = 1500
-	throttlePW = int(throttle_in/10000*65536)
-	thrusterChannel5.duty_cycle = throttlePW
-	time.sleep(0)
-
-	throttle_in = 2200
-	throttlePW = int(throttle_in/10000*65536)
-	thrusterChannel6.duty_cycle = throttlePW
-	time.sleep(0)
-
-	throttle_in = 1500
-	throttlePW = int(throttle_in/10000*65536)
-	thrusterChannel6.duty_cycle = throttlePW
-	time.sleep(0)
+	for channel in thrusterChannels:
+		throttlePW = int(2200/10000*65536)
+		channel.duty_cycle = throttlePW
+		time.sleep(0)
+		throttlePW = int(1500/10000*65536)
+		channel.duty_cycle = throttlePW
+		time.sleep(0)
 	
 	#horizontal thrusters calculations
 	def calcHorizontal(joyValue, thrusterNum, direction):
@@ -126,65 +79,17 @@ def main():
 			joyValue = joyValue - ((abs(joyValue)/joyValue) * 10) # was 5
 			return joyValue * direction[thrusterNum]
 			
-	while True:			
+	while True:
 		# main loop
-		#x_speed = x_speed[1:]
-		# loop to collect value for each thruster using horizontal calculation function
-		print("Testing Thruster 1")
-		input("Press Enter to continue...")
-		throttlePW = int(1800/10000*65536)
-		thrusterChannel1.duty_cycle = throttlePW
-		time.sleep(.5)
-		throttlePW = int(1500/10000*65536)
-		thrusterChannel1.duty_cycle = throttlePW
-		time.sleep(.5)
-
-		print("Testing Thruster 2")
-		input("Press Enter to continue...")
-		throttlePW = int(1800/10000*65536)
-		thrusterChannel2.duty_cycle = throttlePW
-		time.sleep(.5)
-		throttlePW = int(1500/10000*65536)
-		thrusterChannel2.duty_cycle = throttlePW
-		time.sleep(.5)
-
-		print("Testing Thruster 3")
-		input("Press Enter to continue...")
-		throttlePW = int(1800/10000*65536)
-		thrusterChannel3.duty_cycle = throttlePW
-		time.sleep(.5)
-		throttlePW = int(1500/10000*65536)
-		thrusterChannel3.duty_cycle = throttlePW
-		time.sleep(.5)
-
-		print("Testing Thruster 4")
-		input("Press Enter to continue...")
-		throttlePW = int(1800/10000*65536)
-		thrusterChannel4.duty_cycle = throttlePW
-		time.sleep(.5)
-		throttlePW = int(1500/10000*65536)
-		thrusterChannel4.duty_cycle = throttlePW
-		time.sleep(.5)
-
-		print("Testing Thruster 5")
-		input("Press Enter to continue...")
-		throttlePW = int(1800/10000*65536)
-		thrusterChannel5.duty_cycle = throttlePW
-		time.sleep(.5)
-		throttlePW = int(1500/10000*65536)
-		thrusterChannel5.duty_cycle = throttlePW
-		time.sleep(.5)
-		# input("Press Enter to continue...")
-
-		print("Testing Thruster 6")
-		input("Press Enter to continue...")
-		throttlePW = int(1800/10000*65536)
-		thrusterChannel6.duty_cycle = throttlePW
-		time.sleep(.5)
-		throttlePW = int(1500/10000*65536)
-		thrusterChannel6.duty_cycle = throttlePW
-		time.sleep(.5)
-		# input("Press Enter to continue...")
+		for i, channel in enumerate(thrusterChannels):
+			print(f"Testing Thruster {i + 1}")
+			input("Press Enter to continue...")
+			throttlePW = int(go_fwd/10000*65536)
+			channel.duty_cycle = throttlePW
+			time.sleep(wait_time)
+			throttlePW = int(1500/10000*65536)
+			channel.duty_cycle = throttlePW
+			time.sleep(wait_time)
 
 if __name__ == "__main__":
 	main()
