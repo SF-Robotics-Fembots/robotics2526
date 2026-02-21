@@ -1,0 +1,10 @@
+Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+Bus 002 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+Bus 002 Device 022: ID 0424:2732 Microchip Technology, Inc. (formerly SMSC) USB2734
+Bus 002 Device 023: ID 0424:2740 Microchip Technology, Inc. (formerly SMSC) Hub Controller
+Bus 002 Device 025: ID 32e4:9520 HD Camera Manufacturer HD USB Camera
+Bus 002 Device 051: ID 32e4:9520 HD Camera Manufacturer HD USB Camera
+Bus 003 Device 001: ID 1d6b:0003 Linux Foundation 3.0 root hub
+Bus 004 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+Bus 004 Device 002: ID 413c:2003 Dell Computer Corp. Keyboard SK-8115
+Bus 005 Device 001: ID 1d6b:0003 Linux Foundation 3.0 root hub
