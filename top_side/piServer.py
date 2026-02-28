@@ -25,13 +25,15 @@ def main(ip_server):
                 break
             if event.type == pygame.JOYBUTTONDOWN:
                 print(event)
-        buttonNorm = (pygame.joystick.Joystick(0).get_button(10))
-        buttonInv = (pygame.joystick.Joystick(0).get_button(11))
+        buttonNorm = (pygame.joystick.Joystick(0).get_button(3)) #10
+        buttonInv = (pygame.joystick.Joystick(0).get_button(5)) #11
         if(buttonNorm == 1):
             clientConnected.send(("a").encode())
+            print("normal mode")
             #print("a")
         elif(buttonInv == 1):
             clientConnected.send(("b").encode())
+            print("inverse mode")
             #print("b")
         else:
             clientConnected.send(("c").encode())
