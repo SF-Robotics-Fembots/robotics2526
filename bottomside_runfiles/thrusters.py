@@ -35,13 +35,22 @@ def main(ip_server):
 	kit = ServoKit(channels=16)
 	shield.frequency = 96
 
-	thrusterChannel1 = shield.channels[8]
-	thrusterChannel2 = shield.channels[12]
-	thrusterChannel3 = shield.channels[13]
-	thrusterChannel4 = shield.channels[11]
-	thrusterChannel5 = shield.channels[9] 
-	thrusterChannel6 = shield.channels[14]
+	thrusterChannel1 = shield.channels[8] #J16
+	thrusterChannel2 = shield.channels[12] #J9
+	thrusterChannel3 = shield.channels[13] #J8
+	thrusterChannel4 = shield.channels[11] #J10
+	thrusterChannel5 = shield.channels[9] #J19
+	thrusterChannel6 = shield.channels[14] #J2
 	thrusterChannel1.duty_cycle = 0x2666
+
+	thrusters = [
+		thrusterChannel1,
+		thrusterChannel2,
+		thrusterChannel3,
+		thrusterChannel4,
+		thrusterChannel5,
+		thrusterChannel6
+	]
 
 	def set_throttle(channel, throttle_in, delay=0):
 		throttlePW = int(throttle_in / 10000 * 65536)
@@ -172,7 +181,7 @@ def main(ip_server):
 			first_dict_end = dataFraud.find("}")
 			dataFraud = dataFraud[0:(first_dict_end+1)]
 			thrusterMovements = json.loads(dataFraud)
-			print(thrusterMovements)
+			#print(thrusterMovements)
 			#time.sleep(1)
 			if debug_l2: print("datafraud: " + dataFraud)
 			data = (clientSocket.recv(1024)).decode()
@@ -354,6 +363,8 @@ def main(ip_server):
 
 			#print("third print")
 			#debug_l2 = 1
+			
+			#made changes starting here for duty cycle
 			if debug_l2: print(powerThrusterVals)
 
 			throttlePW = int(powerThrusterVals[0]/10000*65536)
@@ -373,6 +384,30 @@ def main(ip_server):
 
 			throttlePW = int(powerVertThrusterVals[1]/10000*65536)
 			thrusterChannel6.duty_cycle = throttlePW
+
+			#Combine horizontal and vertical thruster values
+			allPowerVals = powerThrusterVals + powerVertThrusterVals
+
+			# Combine corresponding thruster objects
+			allThrusters = [
+				thrusterChannel1,
+				thrusterChannel2,
+				thrusterChannel3,
+				thrusterChannel4,
+				thrusterChannel5,
+				thrusterChannel6
+			]
+
+			# Apply PWM to each thruster and print values in a single row
+			for thruster, val in zip(allThrusters, allPowerVals):
+				thruster.duty_cycle = int(val / 10000 * 65536)
+
+			#print(*allPowerVals)
+
+			# Print PWM values in a single row with labels
+			labels = ["T1", "T2", "T3", "T4", "T5", "T6"]
+			print(" | ".join(f"{label}:{val}" for label, val in zip(labels, allPowerVals)))
+
 
 		except ValueError:
 			print("Error")
