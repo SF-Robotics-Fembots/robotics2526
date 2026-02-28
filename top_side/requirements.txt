@@ -3,3 +3,9 @@ hid
 hidapi
 pynput
 keyboad
+PyQt5
+cv2
+tkinter
+numpy
+pyautogui
+pygetwindow
