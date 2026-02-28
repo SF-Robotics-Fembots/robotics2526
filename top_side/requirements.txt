@@ -2,10 +2,5 @@ pygame
 hid
 hidapi
 pynput
-keyboad
+keyboard
 PyQt5
-cv2
-tkinter
-numpy
-pyautogui
-pygetwindow
