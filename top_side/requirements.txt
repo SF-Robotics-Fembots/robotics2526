@@ -4,3 +4,5 @@ hidapi
 pynput
 keyboard
 PyQt5
+pyautogui
+image
