@@ -21,7 +21,7 @@ def main(ip_server):
     #the speed is initially set to fast
     # slow_speed = 0
     # prev_mode = slow_speed
-    mode = 1
+    mode = 0
     prev_mode = mode
     #assign a ratio value
     ratio = 0.6 #60% speed
