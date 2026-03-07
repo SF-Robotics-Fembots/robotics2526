@@ -30,5 +30,5 @@ laserCode.start()
 
 joystickCode.join()
 inverseCode.join()
-gripperCode.join()
+#gripperCode.join()
 laserCode.join()
