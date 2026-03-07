@@ -126,7 +126,6 @@ def compute_iou(box_a, box_b):
     inter_w = max(0, inter_x2 - inter_x1)
     inter_h = max(0, inter_y2 - inter_y1)
     inter_area = inter_w * inter_h
-
     union_area = aw * ah + bw * bh - inter_area
     if union_area == 0:
         return 0.0
@@ -238,8 +237,10 @@ def detect_and_identify_crabs(image_path, output_path="output.jpg"):
 # Entry point
 # -------------------------------
 if __name__ == "__main__":
-    results = detect_and_identify_crabs("test.jpg", output_path="output.jpg")
+    test_image = os.path.join(BASE_DIR, "test.jpg")
+    output_image = os.path.join(BASE_DIR, "output.jpg")
 
+    results = detect_and_identify_crabs(test_image, output_path=output_image)
     if not results:
         print("No crabs identified in image.")
     else:
