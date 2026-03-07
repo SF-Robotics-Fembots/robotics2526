@@ -14,7 +14,10 @@ KNOWN_CRABS_DIR = os.path.join(BASE_DIR, "known_crabs")
 # -------------------------------
 device = torch.device("cpu")
 
-model = models.resnet18(pretrained=True)
+#model = models.resnet18(pretrained=True)
+from torchvision.models import resnet18, ResNet18_Weights
+
+model = resnet18(weights=ResNet18_Weights.DEFAULT)
 model.fc = torch.nn.Identity()
 model = model.to(device)
 model.eval()
@@ -65,7 +68,7 @@ GREEN_CRAB_THRESHOLD = 0.80
 # -------------------------------
 # Detection tuning parameters
 # -------------------------------
-MIN_CONTOUR_AREA = 3000       # Skip contours smaller than this (filters noise)
+MIN_CONTOUR_AREA = 500       # Skip contours smaller than this (filters noise)
 MAX_CONTOUR_AREA_RATIO = 0.8  # Skip contours larger than 80% of image (filters background)
 
 # -------------------------------
@@ -85,9 +88,12 @@ def find_candidate_regions(image_path):
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     blur = cv2.GaussianBlur(gray, (5, 5), 0)
 
-    _, thresh = cv2.threshold(
-        blur, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU
-    )
+    _,  thresh = cv2.threshold(
+    blur, 60, 255, cv2.THRESH_BINARY_INV
+)
+    # thresh = cv2.threshold(
+    #     blur, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU
+    # )
 
     kernel = np.ones((5, 5), np.uint8)
     thresh = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel)
@@ -99,6 +105,7 @@ def find_candidate_regions(image_path):
     candidates = []
     for contour in contours:
         area = cv2.contourArea(contour)
+        print("Contour area:", area)
         if area < MIN_CONTOUR_AREA:
             continue
         if area > img_area * MAX_CONTOUR_AREA_RATIO:
