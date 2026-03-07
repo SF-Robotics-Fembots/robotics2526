@@ -6,6 +6,9 @@ import os
 from sklearn.metrics.pairwise import cosine_similarity
 import cv2
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+KNOWN_CRABS_DIR = os.path.join(BASE_DIR, "known_crabs")
+
 # -------------------------------
 # Model setup (CPU, offline)
 # -------------------------------
@@ -45,11 +48,12 @@ def extract_features(image_input):
 # -------------------------------
 known_features = {}
 
-for file in os.listdir("known_crabs"):
+#for file in os.listdir("known_crabs"):
+for file in os.listdir(KNOWN_CRABS_DIR):
     if not file.lower().endswith((".jpg", ".jpeg", ".png")):
         continue
 
-    path = os.path.join("known_crabs", file)
+    path = os.path.join(KNOWN_CRABS_DIR, file)
     known_features[file] = extract_features(path)
 
 # -------------------------------
