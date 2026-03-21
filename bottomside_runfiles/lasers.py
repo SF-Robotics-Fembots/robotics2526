@@ -1,13 +1,10 @@
 import gpiod
 import lgpio
-import socket
-import json
 import sys
 
-PORT = 3030
+LASER1_GPIO = 23
+LASER2_GPIO = 24
 GPIO_CHIP = "/dev/gpiochip4"
-LASER_GPIO = 23
-MESSAGE_KEYS = ("lasers",)
 
 
 def _open_chip(path):
@@ -16,107 +13,77 @@ def _open_chip(path):
     return gpiod.Chip(path)
 
 
-def _lgpio_writer(path, line):
+def _request_output(line, value):
+    if hasattr(gpiod, "LINE_REQ_DIR_OUT"):
+        line.request(consumer="LASER", type=gpiod.LINE_REQ_DIR_OUT)
+        line.set_value(value)
+        return
+
+    if hasattr(gpiod, "LineRequest"):
+        request = gpiod.LineRequest()
+        request.consumer = "LASER"
+        if hasattr(gpiod.LineRequest, "DIRECTION_OUTPUT"):
+            request.request_type = gpiod.LineRequest.DIRECTION_OUTPUT
+        line.request(request, value)
+        return
+
+    raise RuntimeError("Unsupported gpiod API")
+
+
+def _lgpio_write(path, line, value):
     chip_num = int(path.replace("/dev/gpiochip", ""))
     handle = lgpio.gpiochip_open(chip_num)
     lgpio.gpio_claim_output(handle, line)
-
-    def _write(value):
-        lgpio.gpio_write(handle, line, value)
-
-    def _close():
-        lgpio.gpiochip_close(handle)
-
-    return _write, _close
+    lgpio.gpio_write(handle, line, value)
+    lgpio.gpiochip_close(handle)
 
 
-def _gpiod_v2_writer():
-    settings = gpiod.LineSettings(
-        direction=gpiod.Direction.OUTPUT,
-        output_value=gpiod.Value.INACTIVE,
-    )
-    request = gpiod.request_lines(GPIO_CHIP, consumer="LASER", config={
-        LASER_GPIO: settings
-    })
+def main(argv):
+    if len(argv) != 2 or argv[1] not in ("0", "1"):
+        print("Usage: python3 lasertest.py 0|1")
+        return 2
 
-    def _write(value):
-        desired = gpiod.Value.ACTIVE if value == 1 else gpiod.Value.INACTIVE
-        request.set_value(LASER_GPIO, desired)
+    desired_value = 1 if argv[1] == "1" else 0
 
-    def _close():
-        request.close()
-
-    return _write, _close
-
-
-def _gpiod_v1_writer():
-    chip = _open_chip(GPIO_CHIP)
-    line = chip.get_line(LASER_GPIO)
-    line.request(consumer="LASER", type=gpiod.LINE_REQ_DIR_OUT)
-    line.set_value(0)
-
-    def _write(value):
-        line.set_value(value)
-
-    def _close():
-        line.release()
-        chip.close()
-
-    return _write, _close
-
-
-def _make_writer():
+    # --- Modern gpiod v2 API ---
     if (hasattr(gpiod, "request_lines")
             and hasattr(gpiod, "LineSettings")
             and hasattr(gpiod, "Direction")
             and hasattr(gpiod, "Value")):
-        return _gpiod_v2_writer()
-    if hasattr(gpiod, "LINE_REQ_DIR_OUT"):
-        return _gpiod_v1_writer()
-    return _lgpio_writer(GPIO_CHIP, LASER_GPIO)
 
+        settings = gpiod.LineSettings(
+            direction=gpiod.Direction.OUTPUT,
+            output_value=gpiod.Value.INACTIVE,
+        )
 
-def _extract_value(message):
-    for key in MESSAGE_KEYS:
-        if key in message:
-            value = message[key]
-            if value in (1, "1", True):
-                return 1
-            if value in (0, "0", False):
-                return 0
-    return None
+        with gpiod.request_lines(GPIO_CHIP, consumer="LASERS", config={
+            LASER1_GPIO: settings,
+            LASER2_GPIO: settings
+        }) as request:
 
+            val = gpiod.Value.ACTIVE if desired_value else gpiod.Value.INACTIVE
+            request.set_value(LASER1_GPIO, val)
+            request.set_value(LASER2_GPIO, val)
 
-def main(argv):
-    if len(argv) != 2:
-        print("Usage: python3 lasers.py <ip_address>")
-        return 2
+        return 0
 
-    ip_address = argv[1]
-    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    client_socket.connect((ip_address, PORT))
-    print("client connected!")
-
-    write_value, close_writer = _make_writer()
+    # --- Older gpiod fallback ---
     try:
-        while True:
-            data = client_socket.recv(1024)
-            if not data:
-                break
-            text = data.decode()
-            print(text)
-            try:
-                payload = json.loads(text)
-            except json.JSONDecodeError:
-                continue
+        chip = _open_chip(GPIO_CHIP)
 
-            if isinstance(payload, dict):
-                desired = _extract_value(payload)
-                if desired is not None:
-                    write_value(desired)
-    finally:
-        close_writer()
-        client_socket.close()
+        line1 = chip.get_line(LASER1_GPIO)
+        line2 = chip.get_line(LASER2_GPIO)
+
+        _request_output(line1, desired_value)
+        _request_output(line2, desired_value)
+
+        line1.release()
+        line2.release()
+        chip.close()
+
+    except RuntimeError:
+        _lgpio_write(GPIO_CHIP, LASER1_GPIO, desired_value)
+        _lgpio_write(GPIO_CHIP, LASER2_GPIO, desired_value)
 
     return 0
 
