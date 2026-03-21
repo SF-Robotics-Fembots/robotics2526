@@ -17,13 +17,15 @@ joystickCode = threading.Thread(target=joyServer.main, args = (ip_server,))
 inverseCode = threading.Thread(target=piServer.main, args = (ip_server,))
 #gripperCode = threading.Thread(target=gripperServer.main, args=(ip_server,))
 laserCode = threading.Thread(target=laserServer.main, args=(ip_server,))
-#test
+
 
 
 joystickCode.start()                                                                                                                            
 inverseCode.start()
 #gripperCode.start()
-laserCode.start()\
+laserCode.start()
+
+
 
 
 joystickCode.join()
