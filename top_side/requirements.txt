@@ -9,3 +9,4 @@ numpy
 opencv-contrib-python
 
 #to download all of this, python3 -m pip install -r requirements.txt
+# if import cv2 still isnt working, do python3 -m pip install opencv-python in the terminal!
