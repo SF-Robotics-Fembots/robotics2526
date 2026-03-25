@@ -39,7 +39,7 @@ LIBS = -lusb-1.0 -lpthread -lm -ldl
  
 # Flags
 CCFLAGS = -g -Wall $(LIB_USB_PATH) $(shell pkg-config --libs libusb-1.0)
-LDFLAGS = -g libpt2.a
+LDFLAGS = -g ../../libpt2/libpt2.a
  
 # Compiler
 CCC = $(CXX)
