@@ -9,8 +9,8 @@ def main():
 	pygame.init()
 
 	wait_time = 0.5
-	go_fwd = 1650
-	go_bak = 1450
+	go_fwd = 1700
+	go_bak = 1300
 
 	i2c = busio.I2C(board.SCL, board.SDA)
 	shield = adafruit_pca9685.PCA9685(i2c)
