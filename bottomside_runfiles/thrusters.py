@@ -15,6 +15,7 @@ def main(ip_server):
 	horiz_thrust_offset = 0
 	vert_off_value = 1500
 	vert_thrust_offset = 0
+	dynamic_change = 0.20
 
 	#MODE1_REG = 0x00
 
@@ -224,14 +225,14 @@ def main(ip_server):
 
 #MOD: diffValue = value_speed - prevValue
 
-			if (abs(diffX) > 0.05):
-				x_speed = prevX + ((diffX/abs(diffX)) * 0.10)
-			if (abs(diffY) > 0.05):
-				y_speed = prevY + ((diffY/abs(diffY)) * 0.10)
-			if (abs(diffR) > 0.05):
-				r_speed = prevR + ((diffR/abs(diffR)) * 0.10)
-			if (abs(diffV) > 0.05):
-				v_speed = prevV + ((diffV/abs(diffV)) * 0.10)
+			if (abs(diffX) > dynamic_change):
+				x_speed = prevX + ((diffX/abs(diffX)) * dynamic_change)
+			if (abs(diffY) > dynamic_change):
+				y_speed = prevY + ((diffY/abs(diffY)) * dynamic_change)
+			if (abs(diffR) > dynamic_change):
+				r_speed = prevR + ((diffR/abs(diffR)) * dynamic_change)
+			if (abs(diffV) > dynamic_change):
+				v_speed = prevV + ((diffV/abs(diffV)) * dynamic_change)
 				#helps manage power
 				#if diffvalue is greater than .05, then it will assign speed a lower values by multiplying diffValue by .1
 
