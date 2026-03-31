@@ -188,6 +188,7 @@ def main(ip_server):
 			#data = (clientSocket.recv(1024)).decode()
 			if debug_l2: print("data " + data)
 
+			print(f"Loop Start -------------------------------------------------")
 
 
 			
@@ -220,9 +221,9 @@ def main(ip_server):
 			diffY = y_speed - prevY
 			diffR = r_speed - prevR
 			diffV = v_speed - prevV
-			print(f"x_speed: {x_speed} | prevX: {prevX}")
 			#finding difference of speeds to evaluate which ones need power limiting 
 			#values used in next if statement
+			print(f"Time:{time.time()} | from topside - x_speed: {x_speed} | prevX: {prevX} |  y_speed: {y_speed} | prevY: {prevY}")
 
 #MOD: diffValue = value_speed - prevValue
 
@@ -236,7 +237,7 @@ def main(ip_server):
 				v_speed = prevV + ((diffV/abs(diffV)) * dynamic_change)
 		#helps manage power
 		#if diffvalue is greater than .05, then it will assign speed a lower values by multiplying diffValue by .1
-			print(f"Time:{time.time()} | x_speed:{x_speed} | y_speed:{y_speed} | r_speed:{r_speed} | v_speed:{v_speed}")
+			print(f"Time:{time.time()} | after-adjusment x_speed:{x_speed} | y_speed:{y_speed} | r_speed:{r_speed} | v_speed:{v_speed}")
 
 			prevX = x_speed
 			prevY = y_speed
