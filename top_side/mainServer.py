@@ -6,7 +6,7 @@ import threading
 
 #import the threaded files
 import joyServer
-import piServer
+
 #import gripperServer
 import laserServer  
 
