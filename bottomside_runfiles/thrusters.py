@@ -185,7 +185,7 @@ def main(ip_server):
 			#print(thrusterMovements)
 			#time.sleep(1)
 			if debug_l2: print("datafraud: " + dataFraud)
-			data = (clientSocket.recv(1024)).decode()
+			#data = (clientSocket.recv(1024)).decode()
 			if debug_l2: print("data " + data)
 
 
