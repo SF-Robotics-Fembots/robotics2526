@@ -407,7 +407,7 @@ def main(ip_server):
 
 			# Print PWM values in a single row with labels
 			labels = ["T1", "T2", "T3", "T4", "T5", "T6"]
-			print(" | ".join(f"{label}:{val}" for label, val in zip(labels, allPowerVals)))
+			print(f"Time:{time.time()} | " + " | ".join(f"{label}:{val}" for label, val in zip(labels, allPowerVals)))
 
 
 		except ValueError:
