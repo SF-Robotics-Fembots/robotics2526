@@ -25,6 +25,7 @@ def main():
 		shield.channels[9],  # Thruster 5
 		shield.channels[14], # Thruster 6
 		shield.channels[15], # Thruster 7
+		shield.channels[10], # Thruster 8
 	]
 	thrusterChannels[0].duty_cycle = 0x2666
 
@@ -38,7 +39,7 @@ def main():
 	
 	while True:
 		# Get thruster number from user
-		thruster_num = input("Enter thruster number (1-7) or 'q' to quit: ").strip()
+		thruster_num = input("Enter thruster number (1-8) or 'q' to quit: ").strip()
 		
 		if thruster_num.lower() == 'q':
 			print("Exiting...")
@@ -46,11 +47,11 @@ def main():
 		
 		try:
 			thruster_num = int(thruster_num)
-			if thruster_num < 1 or thruster_num > 7:
-				print("Invalid thruster number. Please enter 1-7.")
+			if thruster_num < 1 or thruster_num > 8:
+				print("Invalid thruster number. Please enter 1-8.")
 				continue
 		except ValueError:
-			print("Invalid input. Please enter a number 1-7 or 'q' to quit.")
+			print("Invalid input. Please enter a number 1-8 or 'q' to quit.")
 			continue
 		
 		# Test the selected thruster
