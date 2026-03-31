@@ -236,10 +236,7 @@ def main(ip_server):
 				v_speed = prevV + ((diffV/abs(diffV)) * dynamic_change)
 		#helps manage power
 		#if diffvalue is greater than .05, then it will assign speed a lower values by multiplying diffValue by .1
-		print(f"Time:" {time.time() | x_speed:{x_speed} | y_speed:{y_speed} | r_speed:{r_speed} | v_speed:{v_speed})
-
-#MOD: if(abs(diffValue) > 0.05):
-		#value_speed = prevValue + ((diffValue/abs(diffValue)) * 0.10)
+			print(f"Time:{time.time()} | x_speed:{x_speed} | y_speed:{y_speed} | r_speed:{r_speed} | v_speed:{v_speed}")
 
 			prevX = x_speed
 			prevY = y_speed
