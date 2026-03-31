@@ -15,7 +15,7 @@ def main(ip_server):
 	horiz_thrust_offset = 0
 	vert_off_value = 1500
 	vert_thrust_offset = 0
-	dynamic_change = 0.20
+	dynamic_change = 999
 
 	#MODE1_REG = 0x00
 
