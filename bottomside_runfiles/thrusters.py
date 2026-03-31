@@ -220,6 +220,7 @@ def main(ip_server):
 			diffY = y_speed - prevY
 			diffR = r_speed - prevR
 			diffV = v_speed - prevV
+			print(f"x_speed: {x_speed} | prevX: {prevX}")
 			#finding difference of speeds to evaluate which ones need power limiting 
 			#values used in next if statement
 
@@ -227,6 +228,7 @@ def main(ip_server):
 
 			if (abs(diffX) > dynamic_change):
 				x_speed = prevX + ((diffX/abs(diffX)) * dynamic_change)
+				print(f"x_speed after dynamic_change: {x_speed}")
 			if (abs(diffY) > dynamic_change):
 				y_speed = prevY + ((diffY/abs(diffY)) * dynamic_change)
 			if (abs(diffR) > dynamic_change):
