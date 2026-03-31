@@ -34,7 +34,7 @@ def main(ip_server):
 	shield = adafruit_pca9685.PCA9685(i2c)
 	shield.external_clock = True #enable 25MHz external crystal
 	kit = ServoKit(channels=16)
-	shield.frequency = 96
+	shield.frequency = 100
 
 	thrusterChannel1 = shield.channels[8] #J16
 	thrusterChannel2 = shield.channels[12] #J9
@@ -56,7 +56,7 @@ def main(ip_server):
 	def set_throttle(channel, throttle_in, delay=0):
 		throttlePW = int(throttle_in / 10000 * 65536)
 		channel.duty_cycle = throttlePW
-		time.sleep(delay)
+		time.sleep(0)
 
 	# def test_sequence(ip_server):
 	# 	channels = [thrusterChannel1, thrusterChannel2, thrusterChannel3, thrusterChannel4, thrusterChannel5, thrusterChannel6]
@@ -408,6 +408,10 @@ def main(ip_server):
 			# Print PWM values in a single row with labels
 			labels = ["T1", "T2", "T3", "T4", "T5", "T6"]
 			print(f"Time:{time.time()} | " + " | ".join(f"{label}:{val}" for label, val in zip(labels, allPowerVals)))
+			
+			# Print actual ESC values (duty cycle)
+			esc_vals = [int(val / 10000 * 65536) for val in allPowerVals]
+			print(f"ESC Values: " + " | ".join(f"{label}:{val}" for label, val in zip(labels, esc_vals)))
 
 
 		except ValueError:
