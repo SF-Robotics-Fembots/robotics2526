@@ -227,15 +227,15 @@ def main(ip_server):
 
 #MOD: diffValue = value_speed - prevValue
 
-			if (abs(diffX) > dynamic_change):
-				x_speed = prevX + ((diffX/abs(diffX)) * dynamic_change)
-			if (abs(diffY) > dynamic_change):
-				y_speed = prevY + ((diffY/abs(diffY)) * dynamic_change)
-			if (abs(diffR) > dynamic_change):
-				r_speed = prevR + ((diffR/abs(diffR)) * dynamic_change)
-			if (abs(diffV) > dynamic_change):
-				v_speed = prevV + ((diffV/abs(diffV)) * dynamic_change)
-		#helps manage power
+		# 	if (abs(diffX) > dynamic_change):
+		# 		x_speed = prevX + ((diffX/abs(diffX)) * dynamic_change)
+		# 	if (abs(diffY) > dynamic_change):
+		# 		y_speed = prevY + ((diffY/abs(diffY)) * dynamic_change)
+		# 	if (abs(diffR) > dynamic_change):
+		# 		r_speed = prevR + ((diffR/abs(diffR)) * dynamic_change)
+		# 	if (abs(diffV) > dynamic_change):
+		# 		v_speed = prevV + ((diffV/abs(diffV)) * dynamic_change)
+		# #helps manage power
 		#if diffvalue is greater than .05, then it will assign speed a lower values by multiplying diffValue by .1
 			print(f"Time:{time.time()} | after-adjusment x_speed:{x_speed} | y_speed:{y_speed} | r_speed:{r_speed} | v_speed:{v_speed}")
 
