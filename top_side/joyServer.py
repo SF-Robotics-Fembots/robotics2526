@@ -82,6 +82,8 @@ def main(ip_server):
         message = message.encode()
         clientConnected.send(message)
 
+        print(f"Time:{time.time()} | x_speed:{x_speed} | y_speed:{y_speed} | r_speed:{r_speed} | v_speed:{v_speed}")
+
         #to slow down the loop because it goes faster than light
         time.sleep(.01) #.05
         
