@@ -8,7 +8,7 @@ def main():
 	# library setup
 	pygame.init()
 
-	wait_time = 0.5
+	wait_time = 0.3
 	go_fwd = 1700
 	go_bak = 1300
 
