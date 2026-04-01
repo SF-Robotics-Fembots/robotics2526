@@ -278,12 +278,12 @@ def main(ip_server):
 
             #REMEMBER TO TEST THESE NOW
 			# FWD/BACK is "Y", SIDE TO SIDE is "X"
-			# this is thruster 1, 2, 3, 4
+			# this is thruster 1 (front right), 2 (back right), 3 (front left), 4 (back left)
 			# THIS IS FOR THRUSTER MOUNTING- CW/CCW is below (clock_array)
 			
-			yDirArray = [-1*direction, 1*direction, -1*direction, 1*direction]
-			xDirArray = [1*direction, 1*direction, -1*direction, -1*direction]
-			rDirArray = [1, -1, 1, -1]
+			yDirArray = [1*direction, -1*direction, 1*direction, -1*direction]
+			xDirArray = [-1*direction, -1*direction, 1*direction, 1*direction]
+			rDirArray = [1, 1, -1, -1]
 			vDirArray = [1, 1]
 
 			# array for each horizontal thruster value
@@ -300,7 +300,7 @@ def main(ip_server):
 				#goes through code two times
 				oldVertThrusterVals[vNum] = int((calcVertical(v_speed, vNum, vDirArray)))
 
-			clockArray = [1, 1, 1, 1]
+			clockArray = [1, 1, 1, 1]    #1 for CW, 2 for CCW
 			clockVertArray = [1, 1]
 
 			thrusterVals = [0, 0, 0, 0]
