@@ -268,15 +268,22 @@ def main(ip_server):
 				direction = direction
 			if debug_l2: print(directionRecieved)
 			if debug_l2: print(direction)
+
+
 			#xDirArray = [-1*direction, 1*direction, -1*direction, 1*direction]
 			#yDirArray = [1*direction, 1*direction, -1*direction, -1*direction]
 			#rDirArray = [-1, 1, 1, -1]
 			#third thruster is now cw so the signs got flipped
+
+
             #REMEMBER TO TEST THESE NOW
 			# FWD/BACK is "Y", SIDE TO SIDE is "X"
-			xDirArray = [1*direction, 1*direction, -1*direction, -1*direction]
+			# this is thruster 1, 2, 3, 4
+			# THIS IS FOR THRUSTER MOUNTING- CW/CCW is below (clock_array)
+			
 			yDirArray = [-1*direction, 1*direction, -1*direction, 1*direction]
-			rDirArray = [1, -1, -1, 1]
+			xDirArray = [1*direction, 1*direction, -1*direction, -1*direction]
+			rDirArray = [1, -1, 1, -1]
 			vDirArray = [1, 1]
 
 			# array for each horizontal thruster value
@@ -293,7 +300,7 @@ def main(ip_server):
 				#goes through code two times
 				oldVertThrusterVals[vNum] = int((calcVertical(v_speed, vNum, vDirArray)))
 
-			clockArray = [-1, 1, 1, -1]
+			clockArray = [1, 1, 1, 1]
 			clockVertArray = [1, 1]
 
 			thrusterVals = [0, 0, 0, 0]
