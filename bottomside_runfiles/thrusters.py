@@ -349,14 +349,14 @@ def main(ip_server):
 
 
 
-
+			# static power limiting
 			finalHorDiff = abs(powerThrusterVals[1] - horiz_off_value)
 			finalVertDiff = abs(powerVertThrusterVals[1] - vert_off_value)
 			finalTotal = (finalHorDiff * 4) + (finalVertDiff * 2)
 			if (finalTotal != 0):
-				percent = (2500/finalTotal) #2400
+				percent = (1700/finalTotal) #2400
 				#finds percent to display how much we are exceeding power use (ex. exceeding power limit by 5%)
-				if (finalTotal > 2500): #was 1950, max 2934
+				if (finalTotal > 1700): #was 1950, max 2934
 					for thruster in range(0, 4):
 						Diff = powerThrusterVals[thruster] - horiz_off_value
 						newDiff = Diff * (percent)
