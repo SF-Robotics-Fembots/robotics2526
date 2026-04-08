@@ -119,6 +119,7 @@ except KeyboardInterrupt:
 # ----------------------------
 # Cleanup
 # ----------------------------
+print("helloooo")
 laser_off()
 laser1.close()
 laser2.close()
