@@ -81,7 +81,7 @@ cap = cv2.VideoCapture(0)
 
 laser_on()
 
-print("\nPress 'q' to quit\n")fit 
+print("\nPress 'q' to quit\n")
        
 try:
     while True:
