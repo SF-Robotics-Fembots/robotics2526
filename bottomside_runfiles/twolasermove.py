@@ -77,7 +77,7 @@ def get_distance(laser):
 # CAMERA DISPLAY
 # ----------------------------
 print("hiiii")
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(2)
 
 laser_on()
 
