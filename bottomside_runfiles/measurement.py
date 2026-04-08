@@ -2,89 +2,89 @@ import cv2
 import numpy as np
 
 # --- CONFIGURATION ---
-# The physical distance between your two laser pointers (e.g., 10 cm)
-KNOWN_DISTANCE = 10.0 
+KNOWN_DISTANCE = 4.0  # The lasers are exactly 4 inches apart
+IMAGE_PATH = "your_photo.jpg"  # Put your image filename here
 
-# Global state
-points = []
+# Global variables to store your measurement clicks
+measurement_points = []
+pixels_per_inch = None
 
-def mouse_click(event, x, y, flags, param):
-    """Handles mouse clicks for measuring objects."""
-    global points
+def mouse_callback(event, x, y, flags, param):
+    global measurement_points, pixels_per_inch
+    
     if event == cv2.EVENT_LBUTTONDOWN:
-        if len(points) < 2:
-            points.append((x, y))
-        else:
-            points = [(x, y)] # Reset and start a new measurement
-
-# 1. Initialize Camera (0 is usually the default RPi or USB cam)
-cap = cv2.VideoCapture(0)
-cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
-
-# 2. Create the GUI Window
-window_name = "VS Code Laser Measure"
-cv2.namedWindow(window_name)
-cv2.setMouseCallback(window_name, mouse_click)
-
-print("Starting... Point lasers at target. Press 'q' to quit.")
-
-while True:
-    ret, frame = cap.read()
-    if not ret:
-        break
-
-    # 3. Detect Laser Dots (Looking for Bright Red)
-    hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-    
-    # Red color range - might need adjustment based on your specific laser
-    lower_red = np.array([150, 50, 200])
-    upper_red = np.array([180, 255, 255])
-    mask = cv2.inRange(hsv, lower_red, upper_red)
-    
-    # Find the laser centers
-    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    centers = []
-    for c in contours:
-        if cv2.contourArea(c) > 2:
-            M = cv2.moments(c)
-            if M["m00"] != 0:
-                centers.append((int(M["m10"]/M["m00"]), int(M["m01"]/M["m00"])))
-
-    # 4. Calibration Logic (Distance Triangulation)
-    pixels_per_unit = None
-    if len(centers) >= 2:
-        # Get the two dots
-        centers = sorted(centers, key=lambda x: x[0])
-        p1, p2 = centers[0], centers[1]
+        # Save the point where you clicked
+        measurement_points.append((x, y))
         
-        # Calculate pixel distance between lasers
-        px_dist = np.sqrt((p1[0]-p2[0])**2 + (p1[1]-p2[1])**2)
-        pixels_per_unit = px_dist / KNOWN_DISTANCE
-        
-        # Visual Feedback: Blue line for the "Ruler"
-        cv2.line(frame, p1, p2, (255, 0, 0), 2)
-        cv2.putText(frame, "CALIBRATED", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
+        # We need 2 points to make a measurement
+        if len(measurement_points) == 2:
+            p1, p2 = measurement_points[0], measurement_points[1]
+            
+            # Calculate pixel distance of your clicks
+            dist_px = np.sqrt((p1[0]-p2[0])**2 + (p1[1]-p2[1])**2)
+            
+            if pixels_per_inch:
+                final_inches = dist_px / pixels_per_inch
+                print(f"Measurement: {final_inches:.2f} inches")
+                
+                # Draw the measurement on the screen
+                cv2.line(display_img, p1, p2, (0, 255, 255), 2)
+                cv2.putText(display_img, f"{final_inches:.2f} in", (x, y - 10),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)
+                cv2.imshow("Measure Tool", display_img)
+            else:
+                print("Error: Lasers not detected. Cannot calibrate scale.")
+            
+            # Reset points for the next measurement
+            measurement_points = []
 
-    # 5. Measurement Logic
-    for p in points:
-        cv2.circle(frame, p, 5, (0, 0, 255), -1)
+# 1. Load the Image
+raw_img = cv2.imread(IMAGE_PATH)
+if raw_img is None:
+    print(f"Error: Could not find {IMAGE_PATH}")
+    exit()
 
-    if len(points) == 2 and pixels_per_unit:
-        # Distance between your clicks
-        obj_px = np.sqrt((points[0][0]-points[1][0])**2 + (points[0][1]-points[1][1])**2)
-        actual_size = obj_px / pixels_per_unit
-        
-        # Display Yellow Measurement Line
-        cv2.line(frame, points[0], points[1], (0, 255, 255), 2)
-        cv2.putText(frame, f"{actual_size:.2f} units", (points[0][0], points[0][1]-10), 
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 255), 2)
+display_img = raw_img.copy()
 
-    # 6. Refresh the GUI
-    cv2.imshow(window_name, frame)
+# 2. Detect Lasers (Automatic Calibration)
+hsv = cv2.cvtColor(raw_img, cv2.COLOR_BGR2HSV)
+# Looking for bright green laser dots
+mask = cv2.inRange(hsv, np.array([150, 100, 200]), np.array([180, 255, 255]))
+contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+laser_centers = []
+for c in contours:
+    if cv2.contourArea(c) > 2:
+        M = cv2.moments(c)
+        if M["m00"] != 0:
+            laser_centers.append((int(M["m10"]/M["m00"]), int(M["m01"]/M["m00"])))
+
+# 3. Setup the "Ruler"
+if len(laser_centers) >= 2:
+    laser_centers = sorted(laser_centers, key=lambda x: x[0])
+    l1, l2 = laser_centers[0], laser_centers[1]
     
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
+    # How many pixels represent 4 inches?
+    laser_dist_px = np.sqrt((l1[0]-l2[0])**2 + (l1[1]-l2[1])**2)
+    pixels_per_inch = laser_dist_px / KNOWN_DISTANCE
+    
+    # Draw blue line between lasers to show it worked
+    cv2.line(display_img, l1, l2, (255, 0, 0), 2)
+    cv2.putText(display_img, "CALIBRATED (4in)", (l1[0], l1[1]-10), 
+                cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 1)
+    print(f"Calibration successful: {pixels_per_inch:.2f} pixels per inch.")
+else:
+    print("Warning: Could not find 2 laser dots. Scale is unknown.")
 
-cap.release()
+# 4. Interaction Loop
+cv2.imshow("Measure Tool", display_img)
+cv2.setMouseCallback("Measure Tool", mouse_callback)
+
+print("INSTRUCTIONS:")
+print("1. The blue line shows the 4-inch laser reference.")
+print("2. Click two points on the object you want to measure.")
+print("3. Results will print here and show on the image.")
+print("4. Press any key to close.")
+
+cv2.waitKey(0)
 cv2.destroyAllWindows()
