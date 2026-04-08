@@ -15,6 +15,7 @@ def main(ip_server):
 	horiz_thrust_offset = 0
 	vert_off_value = 1500
 	vert_thrust_offset = 0
+	dynamic_change = 999
 
 	#MODE1_REG = 0x00
 
@@ -55,7 +56,7 @@ def main(ip_server):
 	def set_throttle(channel, throttle_in, delay=0):
 		throttlePW = int(throttle_in / 10000 * 65536)
 		channel.duty_cycle = throttlePW
-		time.sleep(delay)
+		time.sleep(0)
 
 	# def test_sequence(ip_server):
 	# 	channels = [thrusterChannel1, thrusterChannel2, thrusterChannel3, thrusterChannel4, thrusterChannel5, thrusterChannel6]
@@ -184,9 +185,10 @@ def main(ip_server):
 			#print(thrusterMovements)
 			#time.sleep(1)
 			if debug_l2: print("datafraud: " + dataFraud)
-			data = (clientSocket.recv(1024)).decode()
+			#data = (clientSocket.recv(1024)).decode()
 			if debug_l2: print("data " + data)
 
+			print(f"Loop Start -------------------------------------------------")
 
 
 			
@@ -221,22 +223,21 @@ def main(ip_server):
 			diffV = v_speed - prevV
 			#finding difference of speeds to evaluate which ones need power limiting 
 			#values used in next if statement
+			print(f"Time:{time.time()} | from topside - x_speed: {x_speed} | prevX: {prevX} |  y_speed: {y_speed} | prevY: {prevY}")
 
 #MOD: diffValue = value_speed - prevValue
 
-			if (abs(diffX) > 0.05):
-				x_speed = prevX + ((diffX/abs(diffX)) * 0.10)
-			if (abs(diffY) > 0.05):
-				y_speed = prevY + ((diffY/abs(diffY)) * 0.10)
-			if (abs(diffR) > 0.05):
-				r_speed = prevR + ((diffR/abs(diffR)) * 0.10)
-			if (abs(diffV) > 0.05):
-				v_speed = prevV + ((diffV/abs(diffV)) * 0.10)
-				#helps manage power
-				#if diffvalue is greater than .05, then it will assign speed a lower values by multiplying diffValue by .1
-
-#MOD: if(abs(diffValue) > 0.05):
-		#value_speed = prevValue + ((diffValue/abs(diffValue)) * 0.10)
+		# 	if (abs(diffX) > dynamic_change):
+		# 		x_speed = prevX + ((diffX/abs(diffX)) * dynamic_change)
+		# 	if (abs(diffY) > dynamic_change):
+		# 		y_speed = prevY + ((diffY/abs(diffY)) * dynamic_change)
+		# 	if (abs(diffR) > dynamic_change):
+		# 		r_speed = prevR + ((diffR/abs(diffR)) * dynamic_change)
+		# 	if (abs(diffV) > dynamic_change):
+		# 		v_speed = prevV + ((diffV/abs(diffV)) * dynamic_change)
+		# #helps manage power
+		#if diffvalue is greater than .05, then it will assign speed a lower values by multiplying diffValue by .1
+			print(f"Time:{time.time()} | after-adjusment x_speed:{x_speed} | y_speed:{y_speed} | r_speed:{r_speed} | v_speed:{v_speed}")
 
 			prevX = x_speed
 			prevY = y_speed
@@ -267,15 +268,22 @@ def main(ip_server):
 				direction = direction
 			if debug_l2: print(directionRecieved)
 			if debug_l2: print(direction)
+
+
 			#xDirArray = [-1*direction, 1*direction, -1*direction, 1*direction]
 			#yDirArray = [1*direction, 1*direction, -1*direction, -1*direction]
 			#rDirArray = [-1, 1, 1, -1]
 			#third thruster is now cw so the signs got flipped
+
+
             #REMEMBER TO TEST THESE NOW
 			# FWD/BACK is "Y", SIDE TO SIDE is "X"
-			xDirArray = [1*direction, 1*direction, -1*direction, -1*direction]
-			yDirArray = [-1*direction, 1*direction, -1*direction, 1*direction]
-			rDirArray = [1, -1, -1, 1]
+			# this is thruster 1 (front right), 2 (back right), 3 (front left), 4 (back left)
+			# THIS IS FOR THRUSTER MOUNTING- CW/CCW is below (clock_array)
+			
+			yDirArray = [1*direction, -1*direction, 1*direction, -1*direction]
+			xDirArray = [-1*direction, -1*direction, 1*direction, 1*direction]
+			rDirArray = [-1, 1, 1, -1]
 			vDirArray = [1, 1]
 
 			# array for each horizontal thruster value
@@ -292,7 +300,7 @@ def main(ip_server):
 				#goes through code two times
 				oldVertThrusterVals[vNum] = int((calcVertical(v_speed, vNum, vDirArray)))
 
-			clockArray = [-1, 1, 1, -1]
+			clockArray = [1, 1, 1, 1]    #1 for CW, 2 for CCW
 			clockVertArray = [1, 1]
 
 			thrusterVals = [0, 0, 0, 0]
@@ -341,14 +349,14 @@ def main(ip_server):
 
 
 
-
+			# static power limiting
 			finalHorDiff = abs(powerThrusterVals[1] - horiz_off_value)
 			finalVertDiff = abs(powerVertThrusterVals[1] - vert_off_value)
 			finalTotal = (finalHorDiff * 4) + (finalVertDiff * 2)
 			if (finalTotal != 0):
-				percent = (2700/finalTotal) #2400
+				percent = (1700/finalTotal) #2400
 				#finds percent to display how much we are exceeding power use (ex. exceeding power limit by 5%)
-				if (finalTotal > 2700): #was 1950, max 2934
+				if (finalTotal > 1700): #was 1950, max 2934
 					for thruster in range(0, 4):
 						Diff = powerThrusterVals[thruster] - horiz_off_value
 						newDiff = Diff * (percent)
@@ -406,7 +414,11 @@ def main(ip_server):
 
 			# Print PWM values in a single row with labels
 			labels = ["T1", "T2", "T3", "T4", "T5", "T6"]
-			print(" | ".join(f"{label}:{val}" for label, val in zip(labels, allPowerVals)))
+			print(f"Time:{time.time()} | " + " | ".join(f"{label}:{val}" for label, val in zip(labels, allPowerVals)))
+			
+			# Print actual ESC values (duty cycle)
+			esc_vals = [int(val / 10000 * 65536) for val in allPowerVals]
+			print(f"ESC Values: " + " | ".join(f"{label}:{val}" for label, val in zip(labels, esc_vals)))
 
 
 		except ValueError:
