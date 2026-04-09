@@ -5,6 +5,7 @@ import time, json
 #global ip_server
 def main(ip_server):
     serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    serverSocket.settimeout(10.0)  # Set a timeout of 5 seconds
     print(ip_server)
     
     pygame.joystick.init()
