@@ -79,7 +79,7 @@ class CaptureCam(QThread):
         img = np.ones((480, 640, 3), dtype=np.uint8) * 255
         img[:] = [255, 232, 240]
 
-        offline_text = "CAMERA OFFLINE"
+        offline_text = "CAMERA OFFLINE (*_*)"
         text_scale = 2
         text_thickness = 4
         text_size = cv2.getTextSize(offline_text, cv2.FONT_HERSHEY_SIMPLEX, text_scale, text_thickness)[0]
