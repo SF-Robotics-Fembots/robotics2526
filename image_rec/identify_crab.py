@@ -9,9 +9,7 @@ import cv2
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 KNOWN_CRABS_DIR = os.path.join(BASE_DIR, "known_crabs")
 
-# -------------------------------
 # Model setup (CPU, offline)
-# -------------------------------
 device = torch.device("cpu")
 
 #model = models.resnet18(pretrained=True)
@@ -31,24 +29,52 @@ transform = transforms.Compose([
     )
 ])
 
-# -------------------------------
+def correct_underwater_color(img):
+    img_cv = np.array(img)
+
+    # Convert to LAB color space
+    lab = cv2.cvtColor(img_cv, cv2.COLOR_RGB2LAB)
+
+    # Split channels
+    l, a, b = cv2.split(lab)
+
+    # Apply CLAHE (contrast enhancement) to lightness channel
+    clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
+    l = clahe.apply(l)
+
+    # Merge back
+    lab = cv2.merge((l, a, b))
+    corrected = cv2.cvtColor(lab, cv2.COLOR_LAB2RGB)
+
+    return Image.fromarray(corrected)
+
 # Feature extraction
-# -------------------------------
 def extract_features(image_input):
     if isinstance(image_input, str):
         img = Image.open(image_input).convert("RGB")
     else:
         img = image_input.convert("RGB")
-    img = transform(img).unsqueeze(0).to(device)
+    
+    #fix underwater color distortion before feature extraction
+    img = correct_underwater_color(img)
+
+    #RGB version
+    rgb_tensor = transform(img).unsqueeze(0).to(device)
+
+    #grayscale version (reduces color dependence)
+    gray = img.convert("L").convert("RGB")
+    gray_tensor = transform(gray).unsqueeze(0).to(device)
 
     with torch.no_grad():
-        features = model(img)
+        rgb_feat = model(rgb_tensor)
+        gray_feat = model(gray_tensor)
+
+    #combine features
+    features = torch.cat([rgb_feat, gray_feat], dim=1)
 
     return features.cpu().numpy().flatten()
 
-# -------------------------------
 # Load known crab samples
-# -------------------------------
 known_features = {}
 
 #for file in os.listdir("known_crabs"):
@@ -59,21 +85,15 @@ for file in os.listdir(KNOWN_CRABS_DIR):
     path = os.path.join(KNOWN_CRABS_DIR, file)
     known_features[file] = extract_features(path)
 
-# -------------------------------
 # Thresholds
-# -------------------------------
 IDENTITY_THRESHOLD = 0.75
 GREEN_CRAB_THRESHOLD = 0.80
 
-# -------------------------------
 # Detection tuning parameters
-# -------------------------------
 MIN_CONTOUR_AREA = 500       # Skip contours smaller than this (filters noise)
 MAX_CONTOUR_AREA_RATIO = 0.8  # Skip contours larger than 80% of image (filters background)
 
-# -------------------------------
 # Region detection
-# -------------------------------
 def find_candidate_regions(image_path):
     """
     Run contour detection and return all bounding boxes that pass area filtering.
@@ -88,12 +108,14 @@ def find_candidate_regions(image_path):
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     blur = cv2.GaussianBlur(gray, (5, 5), 0)
 
-    _,  thresh = cv2.threshold(
-    blur, 60, 255, cv2.THRESH_BINARY_INV
-)
-    # thresh = cv2.threshold(
-    #     blur, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU
-    # )
+    thresh = cv2.adaptiveThreshold(
+        blur,
+        255,
+        cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+        cv2.THRESH_BINARY_INV,
+        11,
+        2
+    )
 
     kernel = np.ones((5, 5), np.uint8)
     thresh = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel)
@@ -112,12 +134,18 @@ def find_candidate_regions(image_path):
             continue
         x, y, w, h = cv2.boundingRect(contour)
         candidates.append((x, y, w, h))
+        aspect_ratio = w / float(h)
+        #new line
+        if aspect_ratio < 0.5 or aspect_ratio > 2.5:
+            continue
+
+        extent = area / (w * h)
+        if extent < 0.3:
+            continue
 
     return img, candidates
 
-# -------------------------------
 # Non-maximum suppression
-# -------------------------------
 def compute_iou(box_a, box_b):
     ax, ay, aw, ah = box_a
     bx, by, bw, bh = box_b
@@ -160,9 +188,8 @@ def apply_nms(detections, iou_threshold=0.4):
 
     return kept
 
-# -------------------------------
+
 # Multi-crab detection pipeline
-# -------------------------------
 def detect_and_identify_crabs(image_path, output_path="output.jpg"):
     """
     Detect all crabs in image_path, identify each with ResNet18 cosine similarity,
@@ -240,9 +267,7 @@ def detect_and_identify_crabs(image_path, output_path="output.jpg"):
 
     return detections
 
-# -------------------------------
 # Entry point
-# -------------------------------
 if __name__ == "__main__":
     test_image = os.path.join(BASE_DIR, "test.jpg")
     output_image = os.path.join(BASE_DIR, "output.jpg")

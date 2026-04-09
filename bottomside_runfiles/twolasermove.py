@@ -31,6 +31,8 @@ except:
 # ----------------------------
 # Open connections
 # ----------------------------
+
+print("hello")
 def open_laser(port):
     return serial.Serial(port=port, baudrate=19200, timeout=0.5)
 
@@ -40,6 +42,7 @@ laser2 = open_laser(port2)
 # ----------------------------
 # Commands
 # ----------------------------
+print("hi cynthia")
 LASER_ON  = b'\xAA\x00\x01\xBE\x00\x01\x00\x01\xC1'
 LASER_OFF = b'\xAA\x00\x01\xBE\x00\x01\x00\x00\xC0'
 MEASURE   = b'\xAA\x00\x00\x20\x00\x01\x00\x00\x21'
@@ -73,12 +76,13 @@ def get_distance(laser):
 # ----------------------------
 # CAMERA DISPLAY
 # ----------------------------
-cap = cv2.VideoCapture(0)
+print("hiiii")
+cap = cv2.VideoCapture(2)
 
 laser_on()
 
 print("\nPress 'q' to quit\n")
-
+       
 try:
     while True:
         ret, frame = cap.read()
@@ -115,6 +119,7 @@ except KeyboardInterrupt:
 # ----------------------------
 # Cleanup
 # ----------------------------
+print("helloooo")
 laser_off()
 laser1.close()
 laser2.close()
