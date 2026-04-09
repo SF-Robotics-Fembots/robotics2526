@@ -45,7 +45,10 @@ class CaptureCam(QThread):
                 time.sleep(0.5)
                 continue
 
-            if self.url == 'http://192.168.1.68:8080/stream':
+            if self.url == 'http://192.168.1.68:8082/stream':
+                frame = cv2.rotate(frame, cv2.ROTATE_180)
+
+            if self.url == 'http://192.168.1.68:8084/stream':
                 frame = cv2.rotate(frame, cv2.ROTATE_180)
 
             cv_rgb_image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -151,7 +154,7 @@ class ScreenshotWindow(QMainWindow):
             if self.current_frame_cv is None:
                 return
 
-            save_path = r"D:\screenshot_test"
+            save_path = r"D:\camsgui_screenshots"
             os.makedirs(save_path, exist_ok=True)
 
             timestamp = time.strftime("%Y%m%d_%H%M%S")
@@ -247,7 +250,7 @@ class MainWindow(QMainWindow):
 
         self.cam_threads = []
         for i, url in enumerate(self.urls):
-            high_res = (i == 1)
+            high_res = True
             cam_thread = CaptureCam(url, high_res=high_res)
             cam_thread.ImageUpdate.connect(lambda img, n=i+1: self.ShowCamera(n, img))
             cam_thread.start()
