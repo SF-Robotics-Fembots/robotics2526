@@ -27,6 +27,8 @@ class CaptureCam(QThread):
 
     def run(self):
         capture = cv2.VideoCapture(self.url)
+        capture.set(cv2.CAP_PROP_OPEN_TIMEOUT_MSEC, 2000)
+        capture.set(cv2.CAP_PROP_READ_TIMEOUT_MSEC, 2000)
 
         if capture is None or not capture.isOpened():
             placeholder = self.create_placeholder()
