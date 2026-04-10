@@ -18,7 +18,7 @@ objPoints = [] # 3d point in real world space
 imgPoints = [] # 2d points in image plane.
 
 
-images = glob.glob('*.png')
+images = glob.glob('*.jpg')
 
 for image in images:
     print(image)
@@ -64,7 +64,7 @@ print("\nTranslation Vectors:\n", tvecs)
 
 
 
-img = cv.imread('cali5.png')
+img = cv.imread('cali5.jpg')
 h, w = img.shape[:2]
 newCameraMatrix, roi = cv.getOptimalNewCameraMatrix(cameraMatrix, dist, (w,h), 1, (w,h))
 
@@ -73,7 +73,7 @@ dst = cv.undistort(img, cameraMatrix, dist, None, newCameraMatrix)
 # crop the image
 x, y, w, h = roi
 dst = dst[y:y+h, x:x+w]
-cv.imwrite('caliResult1.png', dst)
+cv.imwrite('caliResult1.jpg', dst)
 
 
 
@@ -83,7 +83,7 @@ dst = cv.remap(img, mapx, mapy, cv.INTER.LINEA)
 #crop the image
 x, y, w, h = roi
 dst = dst[y:y+h, x:x+w]
-cv.imwrite('caliResult2.png', dst)
+cv.imwrite('caliResult2.jpg', dst)
 
 
 
