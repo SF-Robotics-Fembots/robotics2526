@@ -36,12 +36,12 @@ for image in images:
         imgPoints.append(corners)
 
         #Draw and display corners
-        cv.draawChessboardCorners(img, chessboardSize, corners2, ret)
+        cv.drawChessboardCorners(img, chessboardSize, corners2, ret)
         cv.imshow('img', img)
         cv.waitKey(1000)
 
 
-cv.destroyAllWindows
+cv.destroyAllWindows()
 
 #print("Object Points: ", objPoints)
 #print("Image Points: ", imgPoints)
@@ -79,7 +79,7 @@ cv.imwrite('caliResult1.jpg', dst)
 
 # Undistort with remapping
 mapx, mapy = cv.initUndistortRectifyMap(cameraMatrix, dist, None, newCameraMatrix)
-dst = cv.remap(img, mapx, mapy, cv.INTER.LINEA)
+dst = cv.remap(img, mapx, mapy, cv.INTER_LINEAR)
 #crop the image
 x, y, w, h = roi
 dst = dst[y:y+h, x:x+w]
