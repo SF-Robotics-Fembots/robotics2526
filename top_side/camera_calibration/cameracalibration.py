@@ -2,7 +2,7 @@ import numpy as np
 import cv2 as cv
 import glob
 
-# ########## FIND CHESSBOARD CORNERS - objPoints AND imgPoints ############
+########### FIND CHESSBOARD CORNERS - objPoints AND imgPoints ############
 chessboardSize = (24,17)
 frameSize = (1440,1080)
 
@@ -16,7 +16,6 @@ objp[:,:2] = np.mgrid[0:chessboardSize[0], 0:chessboardSize[1]].T.reshape(-1,2)
 # # Arrays to store object points and image points from all the images.
 objPoints = [] # 3d point in real world space
 imgPoints = [] # 2d points in image plane.
-
 
 images = glob.glob('*.jpg')
 
@@ -43,8 +42,8 @@ for image in images:
 
 cv.destroyAllWindows()
 
-#print("Object Points: ", objPoints)
-#print("Image Points: ", imgPoints)
+print("Object Points: ", objPoints)
+print("Image Points: ", imgPoints)
 
 
 
