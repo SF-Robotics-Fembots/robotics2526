@@ -1,3 +1,4 @@
+#this code works for identifying crabs that are clear images
 import torch
 import numpy as np
 from torchvision import models, transforms
