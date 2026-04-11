@@ -1,0 +1,13 @@
+train: ../train/images
+val: ../valid/images
+test: ../test/images
+
+nc: 1
+names: ['crab']
+
+roboflow:
+  workspace: cincinnatis-workspace
+  project: crab-detection-qldrh
+  version: 1
+  license: CC BY 4.0
+  url: https://universe.roboflow.com/cincinnatis-workspace/crab-detection-qldrh/dataset/1
