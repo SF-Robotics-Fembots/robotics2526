@@ -1,6 +1,10 @@
 import numpy as np
 import cv2 as cv
 import glob
+import os
+
+# Change to the script's directory so relative paths work
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 # ########## FIND CHESSBOARD CORNERS - objPoints AND imgPoints ############
 chessboardSize = (24,17)
@@ -19,6 +23,7 @@ imgPoints = [] # 2d points in image plane.
 
 
 images = glob.glob('*.jpg')
+print(len(images))
 
 for image in images:
     print(image)
@@ -78,7 +83,7 @@ cv.imwrite('caliResult1.jpg', dst)
 
 
 # Undistort with remapping
-mapx, mapy = cv.initUndistortRectifyMap(cameraMatrix, dist, None, newCameraMatrix)
+mapx, mapy = cv.initUndistortRectifyMap(cameraMatrix, dist, None, newCameraMatrix, (w,h), cv.CV_16SC2)
 dst = cv.remap(img, mapx, mapy, cv.INTER_LINEAR)
 #crop the image
 x, y, w, h = roi
