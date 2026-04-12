@@ -7,7 +7,7 @@ import os
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 ########### FIND CHESSBOARD CORNERS - objPoints AND imgPoints ############
-chessboardSize = (24,17)
+chessboardSize = (16,21)
 frameSize = (1440,1080)
 
 # # termination criteria
@@ -21,7 +21,7 @@ objp[:,:2] = np.mgrid[0:chessboardSize[0], 0:chessboardSize[1]].T.reshape(-1,2)
 objPoints = [] # 3d point in real world space
 imgPoints = [] # 2d points in image plane.
 
-images = glob.glob('*.jpg')
+images = glob.glob(os.path.join(os.path.dirname(os.path.abspath(__file__)), '*.jpg'))
 print(len(images))
 
 for image in images:
@@ -37,7 +37,7 @@ for image in images:
         
         objPoints.append(objp)
         corners2 = cv.cornerSubPix(gray, corners, (11,11), (-1,-1), criteria)
-        imgPoints.append(corners)
+        imgPoints.append(corners2)
 
         #Draw and display corners
         cv.drawChessboardCorners(img, chessboardSize, corners2, ret)
@@ -55,6 +55,8 @@ print("Image Points: ", imgPoints)
 
 #####CALIBRATION###############
 
+if len(objPoints) == 0:
+    raise RuntimeError("No corners found — check chessboardSize matches your board")
 ret, cameraMatrix, dist, rvecs, tvecs = cv.calibrateCamera(objPoints, imgPoints, frameSize, None, None)
 
 print("Camera Calibrated: ", ret)
@@ -77,19 +79,30 @@ dst = cv.undistort(img, cameraMatrix, dist, None, newCameraMatrix)
 # crop the image
 x, y, w, h = roi
 dst = dst[y:y+h, x:x+w]
+
+
 cv.imwrite('caliResult1.jpg', dst)
+cv.imshow('Undistorted Result 1', dst)
+cv.waitKey(0)
 
 
 
 # Undistort with remapping
-mapx, mapy = cv.initUndistortRectifyMap(cameraMatrix, dist, None, newCameraMatrix, (w,h), cv.CV_16SC2)
+mapx, mapy = cv.initUndistortRectifyMap(cameraMatrix, dist, None, newCameraMatrix, (img.shape[1], img.shape[0]), cv.CV_16SC2)
 dst = cv.remap(img, mapx, mapy, cv.INTER_LINEAR)
 #crop the image
 x, y, w, h = roi
 dst = dst[y:y+h, x:x+w]
 cv.imwrite('caliResult2.jpg', dst)
+cv.imshow('Undistorted Result 2', dst)
+cv.waitKey(0)
 
-
-
+cv.destroyAllWindows()
 # Reprojection Error
 mean_error = 0
+for i in range(len(objPoints)):
+    imgPoints2, _ = cv.projectPoints(objPoints[i], rvecs[i], tvecs[i], cameraMatrix, dist)
+    error = cv.norm(imgPoints[i], imgPoints2, cv.NORM_L2) / len(imgPoints2)
+    mean_error += error
+
+print("Total reprojection error: ", mean_error / len(objPoints))
