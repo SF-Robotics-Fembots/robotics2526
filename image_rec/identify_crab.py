@@ -23,7 +23,8 @@ model = model.to(device)
 model.eval()
 
 # Load YOLO model for crab detection
-yolo_model = YOLO("best.pt")
+MODEL_PATH = os.path.join(BASE_DIR, "best.pt")
+yolo_model = YOLO(MODEL_PATH)
 
 transform = transforms.Compose([
     transforms.Resize((224, 224)),
@@ -98,8 +99,10 @@ for file in os.listdir(KNOWN_CRABS_DIR):
     known_features[file] = extract_features(path)
 
 # Thresholds
-IDENTITY_THRESHOLD = 0.75
-GREEN_CRAB_THRESHOLD = 0.80
+# IDENTITY_THRESHOLD = 0.75
+# GREEN_CRAB_THRESHOLD = 0.80
+IDENTITY_THRESHOLD = 0.45
+GREEN_CRAB_THRESHOLD = 0.55
 
 # Detection tuning parameters
 MIN_CONTOUR_AREA = 500       # Skip contours smaller than this (filters noise)
@@ -192,8 +195,8 @@ def detect_and_identify_crabs(image_path, output_path="output.jpg"):
         if det_conf < 0.25:
             continue
 
-        pad_x = int(w * 0.1)
-        pad_y = int(h * 0.1)
+        pad_x = int(w * 0.5)
+        pad_y = int(h * 0.5)
         crop_x1 = max(0, x - pad_x)
         crop_y1 = max(0, y - pad_y)
         crop_x2 = min(img_width, x + w + pad_x)
