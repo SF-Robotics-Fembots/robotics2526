@@ -28,6 +28,7 @@ except:
     print("Invalid selection")
     sys.exit(1)
 
+print("hello")
 # ----------------------------
 # Open connections
 # ----------------------------
@@ -37,6 +38,7 @@ def open_laser(port):
 laser1 = open_laser(port1)
 laser2 = open_laser(port2)
 
+print("hiii")
 # ----------------------------
 # Commands
 # ----------------------------
@@ -58,6 +60,7 @@ def laser_off():
     laser2.write(LASER_OFF)
     print("Lasers OFF")
 
+print("lasers are dumb")
 # ----------------------------
 # Main loop
 # ----------------------------
@@ -76,6 +79,7 @@ try:
 except KeyboardInterrupt:
     pass
 
+print("woiefjowiejf")
 # ----------------------------
 # Cleanup
 # ----------------------------
