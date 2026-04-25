@@ -13,7 +13,7 @@ LASER_GPIO = 23
 # ----------------------------
 ports = list(serial.tools.list_ports.comports())
 if len(ports) < 2:
-    print("Need at least TWO serial devices")x
+    print("Need at least TWO serial devices")
     sys.exit(1)
 
 print("Available serial devices:")
