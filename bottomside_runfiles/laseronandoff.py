@@ -3,13 +3,17 @@ import serial
 import serial.tools.list_ports
 import time
 import sys
+import gpio
+import lgpio
+
+LASER_GPIO = 23
 
 # ----------------------------
 # Select TWO laser ports
 # ----------------------------
 ports = list(serial.tools.list_ports.comports())
 if len(ports) < 2:
-    print("Need at least TWO serial devices")
+    print("Need at least TWO serial devices")x
     sys.exit(1)
 
 print("Available serial devices:")
