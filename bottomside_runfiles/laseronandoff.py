@@ -3,7 +3,6 @@ import serial
 import serial.tools.list_ports
 import time
 import sys
-import gpio
 import lgpio
 
 LASER_GPIO = 23
