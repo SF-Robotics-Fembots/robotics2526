@@ -1,35 +1,39 @@
 import gpiod
+import sys
 
-# Constants
 LASER_GPIO = 23
 GPIO_CHIP = "/dev/gpiochip4"
 
 def turn_off_laser():
-    # 1. Open the GPIO chip
-    # v1.x uses gpiod.Chip() or gpiod.chip()
+    chip = None
     try:
-        chip = gpiod.Chip(GPIO_CHIP)
-    except Exception as e:
-        print(f"Could not open chip {GPIO_CHIP}: {e}")
-        return
+        # Detect if it's .chip() or .Chip() in your version
+        if hasattr(gpiod, "chip"):
+            chip = gpiod.chip(GPIO_CHIP)
+        elif hasattr(gpiod, "Chip"):
+            chip = gpiod.Chip(GPIO_CHIP)
+        else:
+            print("Error: Could not find chip/Chip attribute in gpiod module.")
+            return
 
-    try:
-        # 2. Get the specific line for the laser
+        # Get the line
         line = chip.get_line(LASER_GPIO)
 
-        # 3. Request the line as an output
-        # LINE_REQ_DIR_OUT is the v1.x constant for output mode
-        line.request(consumer="laser_off_script", type=gpiod.LINE_REQ_DIR_OUT)
-
-        # 4. Set value to 0 (Off)
+        # Request as output and set to 0
+        line.request(consumer="laser_off", type=gpiod.LINE_REQ_DIR_OUT)
         line.set_value(0)
         
-        print(f"Success: Laser on GPIO {LASER_GPIO} is now OFF.")
-
-        # 5. Clean up
+        # Clean up
         line.release()
+        print(f"Laser on GPIO {LASER_GPIO} is now OFF.")
+
+    except PermissionError:
+        print("Error: Access denied. Please run with 'sudo'.")
+    except Exception as e:
+        print(f"An error occurred: {e}")
     finally:
-        chip.close()
+        if chip:
+            chip.close()
 
 if __name__ == "__main__":
     turn_off_laser()
