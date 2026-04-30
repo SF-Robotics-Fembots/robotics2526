@@ -7,24 +7,23 @@ GPIO_CHIP = "/dev/gpiochip4"
 def turn_off_laser():
     chip = None
     try:
-        # Detect if it's .chip() or .Chip() in your version
+        # Check for lowercase 'chip' first (common in v1.x)
         if hasattr(gpiod, "chip"):
             chip = gpiod.chip(GPIO_CHIP)
-        elif hasattr(gpiod, "Chip"):
-            chip = gpiod.Chip(GPIO_CHIP)
         else:
-            print("Error: Could not find chip/Chip attribute in gpiod module.")
-            return
+            chip = gpiod.Chip(GPIO_CHIP)
 
         # Get the line
         line = chip.get_line(LASER_GPIO)
 
-        # Request as output and set to 0
+        # Request as output and set to 0 (OFF)
+        # Using LINE_REQ_DIR_OUT constant
         line.request(consumer="laser_off", type=gpiod.LINE_REQ_DIR_OUT)
         line.set_value(0)
         
-        # Clean up
+        # Release the line so other programs can use it later
         line.release()
+        
         print(f"Laser on GPIO {LASER_GPIO} is now OFF.")
 
     except PermissionError:
@@ -32,8 +31,9 @@ def turn_off_laser():
     except Exception as e:
         print(f"An error occurred: {e}")
     finally:
+        # In v1.x, we just delete the reference to trigger cleanup
         if chip:
-            chip.close()
+            del chip
 
 if __name__ == "__main__":
     turn_off_laser()
