@@ -7,7 +7,7 @@ GPIO_CHIP = "/dev/gpiochip4"
 def turn_off_laser():
     chip = None
     try:
-        # Open chip - checking both common v1.x names
+        # Open chip
         if hasattr(gpiod, "chip"):
             chip = gpiod.chip(GPIO_CHIP)
         else:
@@ -15,12 +15,10 @@ def turn_off_laser():
 
         line = chip.get_line(LASER_GPIO)
 
-        # In libgpiod v1.x:
-        # 1 = Open drain
-        # 2 = Open source
-        # 3 = DIRECTION_OUTPUT (This is what we want)
-        # We use the raw integer 3 to avoid 'AttributeError'
-        line.request(consumer="laser_off", type=3)
+        # In very old v1 wrappers, arguments are strictly positional:
+        # Argument 1: Consumer String
+        # Argument 2: Request Type (3 = Output)
+        line.request("laser_off", 3)
         
         # Set value to 0 (OFF)
         line.set_value(0)
@@ -34,7 +32,6 @@ def turn_off_laser():
         print(f"An error occurred: {e}")
     finally:
         if chip:
-            # Manually trigger cleanup since .close() is missing
             del chip
 
 if __name__ == "__main__":
