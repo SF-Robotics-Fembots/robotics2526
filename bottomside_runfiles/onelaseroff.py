@@ -7,31 +7,35 @@ GPIO_CHIP = "/dev/gpiochip4"
 def turn_off_laser():
     chip = None
     try:
-        # Check for lowercase 'chip' first (common in v1.x)
+        # 1. Open the chip
         if hasattr(gpiod, "chip"):
             chip = gpiod.chip(GPIO_CHIP)
         else:
             chip = gpiod.Chip(GPIO_CHIP)
 
-        # Get the line
         line = chip.get_line(LASER_GPIO)
 
-        # Request as output and set to 0 (OFF)
-        # Using LINE_REQ_DIR_OUT constant
-        line.request(consumer="laser_off", type=gpiod.LINE_REQ_DIR_OUT)
+        # 2. Determine the correct constant for Output
+        # Some versions use gpiod.LINE_REQ_DIR_OUT
+        # Others use gpiod.line.REQ_DIR_OUT
+        if hasattr(gpiod, "LINE_REQ_DIR_OUT"):
+            req_type = gpiod.LINE_REQ_DIR_OUT
+        elif hasattr(gpiod.Line, "REQ_DIR_OUT"):
+            req_type = gpiod.Line.REQ_DIR_OUT
+        else:
+            # Fallback to the raw integer value for 'output' in libgpiod v1
+            req_type = 3 
+
+        # 3. Request the line and set to 0
+        line.request(consumer="laser_off", type=req_type)
         line.set_value(0)
         
-        # Release the line so other programs can use it later
         line.release()
-        
         print(f"Laser on GPIO {LASER_GPIO} is now OFF.")
 
-    except PermissionError:
-        print("Error: Access denied. Please run with 'sudo'.")
     except Exception as e:
         print(f"An error occurred: {e}")
     finally:
-        # In v1.x, we just delete the reference to trigger cleanup
         if chip:
             del chip
 
