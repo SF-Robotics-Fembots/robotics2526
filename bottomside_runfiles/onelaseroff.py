@@ -1,13 +1,13 @@
 import gpiod
-import sys
 
+# Settings
 LASER_GPIO = 23
 GPIO_CHIP = "/dev/gpiochip4"
 
 def turn_off_laser():
     chip = None
     try:
-        # Open chip
+        # Open the chip
         if hasattr(gpiod, "chip"):
             chip = gpiod.chip(GPIO_CHIP)
         else:
@@ -15,19 +15,18 @@ def turn_off_laser():
 
         line = chip.get_line(LASER_GPIO)
 
-        # In very old v1 wrappers, arguments are strictly positional:
-        # Argument 1: Consumer String
-        # Argument 2: Request Type (3 = Output)
-        line.request("laser_off", 3)
+        # We avoid passing a string entirely to stop the 'str' attribute error.
+        # We pass only the direction type as a keyword argument.
+        # 3 is the standard integer for DIRECTION_OUTPUT in v1.x
+        line.request(type=3)
         
-        # Set value to 0 (OFF)
+        # Set to 0 (OFF)
         line.set_value(0)
         
+        # Release and print
         line.release()
         print(f"Laser on GPIO {LASER_GPIO} is now OFF.")
 
-    except PermissionError:
-        print("Error: Permission denied. Please run with 'sudo'.")
     except Exception as e:
         print(f"An error occurred: {e}")
     finally:
