@@ -7,7 +7,7 @@ GPIO_CHIP = "/dev/gpiochip4"
 def turn_off_laser():
     chip = None
     try:
-        # 1. Open the chip
+        # Open chip - checking both common v1.x names
         if hasattr(gpiod, "chip"):
             chip = gpiod.chip(GPIO_CHIP)
         else:
@@ -15,28 +15,26 @@ def turn_off_laser():
 
         line = chip.get_line(LASER_GPIO)
 
-        # 2. Determine the correct constant for Output
-        # Some versions use gpiod.LINE_REQ_DIR_OUT
-        # Others use gpiod.line.REQ_DIR_OUT
-        if hasattr(gpiod, "LINE_REQ_DIR_OUT"):
-            req_type = gpiod.LINE_REQ_DIR_OUT
-        elif hasattr(gpiod.Line, "REQ_DIR_OUT"):
-            req_type = gpiod.Line.REQ_DIR_OUT
-        else:
-            # Fallback to the raw integer value for 'output' in libgpiod v1
-            req_type = 3 
-
-        # 3. Request the line and set to 0
-        line.request(consumer="laser_off", type=req_type)
+        # In libgpiod v1.x:
+        # 1 = Open drain
+        # 2 = Open source
+        # 3 = DIRECTION_OUTPUT (This is what we want)
+        # We use the raw integer 3 to avoid 'AttributeError'
+        line.request(consumer="laser_off", type=3)
+        
+        # Set value to 0 (OFF)
         line.set_value(0)
         
         line.release()
         print(f"Laser on GPIO {LASER_GPIO} is now OFF.")
 
+    except PermissionError:
+        print("Error: Permission denied. Please run with 'sudo'.")
     except Exception as e:
         print(f"An error occurred: {e}")
     finally:
         if chip:
+            # Manually trigger cleanup since .close() is missing
             del chip
 
 if __name__ == "__main__":
