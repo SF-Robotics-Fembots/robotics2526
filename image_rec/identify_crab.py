@@ -251,7 +251,10 @@ def detect_and_identify_crabs(image_path, output_path="output.jpg"):
 
 # Entry point
 if __name__ == "__main__":
-    test_image = os.path.join(BASE_DIR, "test.jpg")
+    test_image = next(
+    (os.path.join(BASE_DIR, f) for f in os.listdir(BASE_DIR)
+     if f.lower().startswith("test.") and f.lower().endswith((".jpg", ".jpeg", ".png"))),
+    None)
     output_image = os.path.join(BASE_DIR, "output.jpg")
 
     results = detect_and_identify_crabs(test_image, output_path=output_image)
