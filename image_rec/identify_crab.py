@@ -234,11 +234,22 @@ def detect_and_identify_crabs(image_path, output_path="output.jpg"):
         else:
             print(f"  Region ({x},{y},{w},{h}): below threshold ({best_score:.3f}), skipping")
 
-    detections = apply_nms(detections, iou_threshold=0.4)
-    print(f"\nFinal detections after NMS: {len(detections)}")
+    # Keep ONLY green crabs
+    green_detections = [
+        d for d in detections
+        if "Green Crab" in d[5]
+    ]
 
-    for (x, y, w, h, score, label) in detections:
-        color = (0, 255, 0) if "Green" in label else (0, 255, 255)
+    # Apply NMS only to green crabs
+    green_detections = apply_nms(green_detections, iou_threshold=0.4)
+
+    # Count green crabs
+    green_count = len(green_detections)
+    print(f"\nFinal green crab detections after NMS: {green_count}")
+
+    # Draw only green crabs
+    for (x, y, w, h, score, label) in green_detections:
+        color = (0, 255, 0)
         cv2.rectangle(img_cv, (x, y), (x + w, y + h), color, 2)
         text_y = y - 10 if y > 30 else y + h + 20
         cv2.putText(
@@ -248,10 +259,19 @@ def detect_and_identify_crabs(image_path, output_path="output.jpg"):
             0.7, color, 2
         )
 
-    cv2.imwrite(output_path, img_cv)
-    print(f"Saved annotated image to: {output_path}")
+    # Add green crab count to screen
+    cv2.putText(
+        img_cv,
+        f"Green Crabs: {green_count}",
+        (20, 40),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        1.0,
+        (0, 255, 0),
+        3
+    )
 
-    return detections
+    cv2.imwrite(output_path, img_cv)
+    return green_detections
 
 # Entry point
 if __name__ == "__main__":
