@@ -8,7 +8,7 @@ os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 ########### FIND CHESSBOARD CORNERS - objPoints AND imgPoints ############
 chessboardSize = (8,6)
-frameSize = (1190,841)
+frameSize = (3024,4032)
 
 # # termination criteria
 criteria = (cv.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER, 30, 0.001)
