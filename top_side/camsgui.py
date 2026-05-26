@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import (
     QPushButton, QMessageBox, QHBoxLayout
 )
 from PyQt5.QtGui import QPixmap, QImage, QFont, QPalette
-from PyQt5.QtCore import QThread, pyqtSignal, Qt
+from PyQt5.QtCore import QThread, pyqtSignal, Qt, QTimer
 import sys
 import time
 import os
@@ -308,6 +308,8 @@ class MainWindow(QMainWindow):
             self.camera_label_widgets.append(container)
             self.rotate_buttons.append(rotate_btn)
 
+        self.__SetupStopwatch()
+
         self.screenshot_btn = QPushButton("Screenshot!")
         self.screenshot_btn.clicked.connect(self.open_screenshot_window)
         self.screenshot_btn.setStyleSheet("""
@@ -338,6 +340,103 @@ class MainWindow(QMainWindow):
             cam_thread.start()
             self.cam_threads.append(cam_thread)
 
+    def __SetupStopwatch(self):
+        self.stopwatch_elapsed_ms = 0
+        self.stopwatch_running = False
+        self.stopwatch_start_t = None  # time.monotonic() seconds at last Start
+
+        self.stopwatch_display = QLabel("00:00.0")
+        self.stopwatch_display.setAlignment(Qt.AlignCenter)
+        self.stopwatch_display.setStyleSheet("""
+            color: black;
+            font-size: 24px;
+            font-weight: bold;
+            padding: 4px 14px;
+            border-radius: 8px;
+            background: white;
+        """)
+
+        sw_btn_style = """
+            QPushButton {
+                border-radius: 8px;
+                padding: 6px 14px;
+                font-weight: bold;
+                background: qlineargradient(
+                    x1:0, y1:0, x2:0, y2:1,
+                    stop:0 #ffc0cb, stop:1 #ffffff
+                );
+            }
+            QPushButton:hover {
+                background: qlineargradient(
+                    x1:0, y1:0, x2:0, y2:1,
+                    stop:0 #ff69b4, stop:1 #ffb6c1
+                );
+            }
+        """
+
+        self.sw_start_btn = QPushButton("Start")
+        self.sw_stop_btn = QPushButton("Stop")
+        self.sw_reset_btn = QPushButton("Reset")
+        for b in (self.sw_start_btn, self.sw_stop_btn, self.sw_reset_btn):
+            b.setStyleSheet(sw_btn_style)
+
+        self.sw_start_btn.clicked.connect(self.stopwatch_start)
+        self.sw_stop_btn.clicked.connect(self.stopwatch_stop)
+        self.sw_reset_btn.clicked.connect(self.stopwatch_reset)
+
+        self.stopwatch_widget = QWidget()
+        sw_layout = QHBoxLayout(self.stopwatch_widget)
+        sw_layout.setContentsMargins(0, 0, 0, 0)
+        sw_layout.addStretch()
+        sw_layout.addWidget(self.stopwatch_display)
+        sw_layout.addWidget(self.sw_start_btn)
+        sw_layout.addWidget(self.sw_stop_btn)
+        sw_layout.addWidget(self.sw_reset_btn)
+        sw_layout.addStretch()
+
+        self.stopwatch_timer = QTimer(self)
+        self.stopwatch_timer.setInterval(50)
+        self.stopwatch_timer.timeout.connect(self._refresh_stopwatch_display)
+
+    def stopwatch_start(self):
+        if not self.stopwatch_running:
+            self.stopwatch_start_t = time.monotonic()
+            self.stopwatch_running = True
+            self.stopwatch_timer.start()
+
+    def stopwatch_pause(self):
+        if self.stopwatch_running:
+            self.stopwatch_elapsed_ms += int((time.monotonic() - self.stopwatch_start_t) * 1000)
+            self.stopwatch_start_t = None
+            self.stopwatch_running = False
+            self.stopwatch_timer.stop()
+            self._refresh_stopwatch_display()
+
+    def stopwatch_stop(self):
+        self.stopwatch_pause()
+
+    def stopwatch_reset(self):
+        self.stopwatch_running = False
+        self.stopwatch_start_t = None
+        self.stopwatch_elapsed_ms = 0
+        self.stopwatch_timer.stop()
+        self._refresh_stopwatch_display()
+
+    def _refresh_stopwatch_display(self):
+        total_ms = self.stopwatch_elapsed_ms
+        if self.stopwatch_running and self.stopwatch_start_t is not None:
+            total_ms += int((time.monotonic() - self.stopwatch_start_t) * 1000)
+        total_secs = total_ms // 1000
+        h = total_secs // 3600
+        m = (total_secs % 3600) // 60
+        s = total_secs % 60
+        tenths = (total_ms % 1000) // 100
+        if h > 0:
+            text = f"{h:02d}:{m:02d}:{s:02d}.{tenths}"
+        else:
+            text = f"{m:02d}:{s:02d}.{tenths}"
+        self.stopwatch_display.setText(text)
+
     def rotate_camera(self, index):
         new_rotation = (self.rotation_states[index] + 90) % 360
         self.rotation_states[index] = new_rotation
@@ -358,7 +457,8 @@ class MainWindow(QMainWindow):
             grid_layout.addWidget(self.scroll_areas[f"Camera_{i+1}"], *positions[i])
             grid_layout.addWidget(self.camera_label_widgets[i], *label_positions[i])
 
-        grid_layout.addWidget(self.screenshot_btn, 4, 1)
+        grid_layout.addWidget(self.screenshot_btn, 4, 0)
+        grid_layout.addWidget(self.stopwatch_widget, 4, 1, 1, 2)
 
         self.widget = QWidget()
         self.widget.setLayout(grid_layout)
