@@ -159,8 +159,28 @@ class ScreenshotWindow(QMainWindow):
             if self.current_frame_cv is None:
                 return
 
-            save_path = r"D:\camsgui_screenshots"
-            os.makedirs(save_path, exist_ok=True)
+            preferred_path = r"D:\camsgui_screenshots"
+            fallback_path = os.path.join(os.path.expanduser("~"), "camsgui_screenshots")
+
+            save_path = None
+            preferred_error = None
+            for candidate in (preferred_path, fallback_path):
+                try:
+                    os.makedirs(candidate, exist_ok=True)
+                    save_path = candidate
+                    break
+                except OSError as e:
+                    print(f"Could not use {candidate}: {e}")
+                    if candidate == preferred_path:
+                        preferred_error = e
+
+            if save_path is None:
+                msg = QMessageBox()
+                msg.setIcon(QMessageBox.Warning)
+                msg.setWindowTitle("Screenshot failed")
+                msg.setText("Could not create a screenshot folder.")
+                msg.exec_()
+                return
 
             timestamp = time.strftime("%Y%m%d_%H%M%S")
             filename = os.path.join(save_path, f"cam_{self.current_index+1}_{timestamp}.png")
@@ -171,12 +191,33 @@ class ScreenshotWindow(QMainWindow):
             if w < 3840 or h < 2160:
                 frame = cv2.resize(frame, (3840, 2160), interpolation=cv2.INTER_CUBIC)
 
-            cv2.imwrite(filename, cv2.cvtColor(frame, cv2.COLOR_RGB2BGR))
+            try:
+                ok = cv2.imwrite(filename, cv2.cvtColor(frame, cv2.COLOR_RGB2BGR))
+            except cv2.error as e:
+                ok = False
+                print(f"cv2.imwrite error: {e}")
+
+            if not ok:
+                msg = QMessageBox()
+                msg.setIcon(QMessageBox.Warning)
+                msg.setWindowTitle("Screenshot failed")
+                msg.setText(f"Could not write screenshot to:\n{filename}")
+                msg.exec_()
+                return
+
             print(f"Saved screenshot to {filename}")
 
             msg = QMessageBox()
-            msg.setWindowTitle("Saved!")
-            msg.setText(f"Screenshot saved:\n{filename}")
+            if save_path != preferred_path:
+                msg.setIcon(QMessageBox.Warning)
+                msg.setWindowTitle("Saved locally (D: unavailable)")
+                msg.setText(
+                    f"Could not save to {preferred_path}:\n{preferred_error}\n\n"
+                    f"Saved locally instead:\n{filename}"
+                )
+            else:
+                msg.setWindowTitle("Saved!")
+                msg.setText(f"Screenshot saved:\n{filename}")
             msg.exec_()
 
     def resizeEvent(self, event):
