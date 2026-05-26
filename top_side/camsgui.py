@@ -3,7 +3,7 @@ import cv2
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QWidget, QLabel,
     QGridLayout, QScrollArea, QSizePolicy,
-    QPushButton, QMessageBox
+    QPushButton, QMessageBox, QHBoxLayout
 )
 from PyQt5.QtGui import QPixmap, QImage, QFont, QPalette
 from PyQt5.QtCore import QThread, pyqtSignal, Qt
@@ -18,12 +18,13 @@ class CaptureCam(QThread):
     ImageUpdate = pyqtSignal(QImage)
     RawFrameUpdate = pyqtSignal(object)
 
-    def __init__(self, url, high_res=False):
+    def __init__(self, url, high_res=False, rotation=0):
         super().__init__()
         self.url = url
         self.high_res = high_res
         self.threadActive = True
         self.last_qt_image = None
+        self.rotation = rotation
 
     def run(self):
         capture = cv2.VideoCapture(self.url)
@@ -47,11 +48,13 @@ class CaptureCam(QThread):
                 time.sleep(0.5)
                 continue
 
-            if self.url == 'http://192.168.1.68:8084/stream':
-                frame = cv2.rotate(frame, cv2.ROTATE_180)
-
-            if self.url == 'http://192.168.1.68:8080/stream':
-                frame = cv2.rotate(frame, cv2.ROTATE_180)
+            rotation_map = {
+                90: cv2.ROTATE_90_CLOCKWISE,
+                180: cv2.ROTATE_180,
+                270: cv2.ROTATE_90_COUNTERCLOCKWISE,
+            }
+            if self.rotation in rotation_map:
+                frame = cv2.rotate(frame, rotation_map[self.rotation])
 
             cv_rgb_image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             height, width, channels = cv_rgb_image.shape
@@ -221,12 +224,48 @@ class MainWindow(QMainWindow):
             "tools cam ❀"
         ]
 
-        self.camera_labels = []
-        for text in labels:
+        # Initial rotation per camera (matches previous hardcoded behavior for 8080 and 8084)
+        self.rotation_states = [180, 0, 180, 0, 0, 0]
+
+        rotate_btn_style = """
+            QPushButton {
+                border-radius: 8px;
+                padding: 4px 10px;
+                font-weight: bold;
+                background: qlineargradient(
+                    x1:0, y1:0, x2:0, y2:1,
+                    stop:0 #ffc0cb, stop:1 #ffffff
+                );
+            }
+            QPushButton:hover {
+                background: qlineargradient(
+                    x1:0, y1:0, x2:0, y2:1,
+                    stop:0 #ff69b4, stop:1 #ffb6c1
+                );
+            }
+        """
+
+        self.camera_label_widgets = []
+        self.rotate_buttons = []
+        for i, text in enumerate(labels):
             label = QLabel(text)
             label.setStyleSheet("color: black")
             label.setAlignment(Qt.AlignCenter)
-            self.camera_labels.append(label)
+
+            rotate_btn = QPushButton(f"⟳ {self.rotation_states[i]}°")
+            rotate_btn.setStyleSheet(rotate_btn_style)
+            rotate_btn.clicked.connect(lambda _, n=i: self.rotate_camera(n))
+
+            container = QWidget()
+            row = QHBoxLayout(container)
+            row.setContentsMargins(0, 0, 0, 0)
+            row.addStretch()
+            row.addWidget(label)
+            row.addWidget(rotate_btn)
+            row.addStretch()
+
+            self.camera_label_widgets.append(container)
+            self.rotate_buttons.append(rotate_btn)
 
         self.screenshot_btn = QPushButton("Screenshot!")
         self.screenshot_btn.clicked.connect(self.open_screenshot_window)
@@ -253,10 +292,16 @@ class MainWindow(QMainWindow):
         self.cam_threads = []
         for i, url in enumerate(self.urls):
             high_res = True
-            cam_thread = CaptureCam(url, high_res=high_res)
+            cam_thread = CaptureCam(url, high_res=high_res, rotation=self.rotation_states[i])
             cam_thread.ImageUpdate.connect(lambda img, n=i+1: self.ShowCamera(n, img))
             cam_thread.start()
             self.cam_threads.append(cam_thread)
+
+    def rotate_camera(self, index):
+        new_rotation = (self.rotation_states[index] + 90) % 360
+        self.rotation_states[index] = new_rotation
+        self.cam_threads[index].rotation = new_rotation
+        self.rotate_buttons[index].setText(f"⟳ {new_rotation}°")
 
     def open_screenshot_window(self):
         self.screenshot_window = ScreenshotWindow(self.cam_threads)
@@ -270,7 +315,7 @@ class MainWindow(QMainWindow):
 
         for i in range(6):
             grid_layout.addWidget(self.scroll_areas[f"Camera_{i+1}"], *positions[i])
-            grid_layout.addWidget(self.camera_labels[i], *label_positions[i])
+            grid_layout.addWidget(self.camera_label_widgets[i], *label_positions[i])
 
         grid_layout.addWidget(self.screenshot_btn, 4, 1)
 
