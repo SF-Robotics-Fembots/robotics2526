@@ -21,7 +21,7 @@ objp[:,:2] = np.mgrid[0:chessboardSize[0], 0:chessboardSize[1]].T.reshape(-1,2)
 objPoints = [] # 3d point in real world space
 imgPoints = [] # 2d points in image plane.
 
-images = glob.glob(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'C*.jpg'))
+images = glob.glob(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'C*.jp*'))
 print(len(images))
 
 for image in images:
