@@ -159,7 +159,7 @@ class ScreenshotWindow(QMainWindow):
             if self.current_frame_cv is None:
                 return
 
-            save_path = r"C:\camsgui_screenshots"
+            save_path = r"D:\camsgui_screenshots"
             os.makedirs(save_path, exist_ok=True)
 
             timestamp = time.strftime("%Y%m%d_%H%M%S")
