@@ -37,12 +37,15 @@ def main():
 	#i2c.write_byte_data(0x40, 0x00, 0x50)
 	#time.sleep(0.01)
 	shield = adafruit_pca9685.PCA9685(i2c)
+	print(f"adafruit_pca9685 version: {getattr(adafruit_pca9685, '__version__', 'unknown')}")
+	print(f"  after construct        MODE1 = 0x{shield.mode1_reg:02X}")
+
 	shield.external_clock = True #enable 25MHz external crystal
+	print(f"  after external_clock=T MODE1 = 0x{shield.mode1_reg:02X}")
+
 	#kit = ServoKit(channels=16)  # disabled: re-instantiates PCA9685, which resets MODE1 and clears EXTCLK; also unused below
 	shield.frequency = 100
-
-	mode1 = shield.mode1_reg
-	print(f"PCA9685 MODE1 = 0x{mode1:02X}  EXTCLK={'ON' if mode1 & 0x40 else 'OFF'}")
+	print(f"  after frequency=100    MODE1 = 0x{shield.mode1_reg:02X}  EXTCLK={'ON' if shield.mode1_reg & 0x40 else 'OFF'}")
 
 	thrusterChannels = [
 		shield.channels[8],  # Thruster 1
