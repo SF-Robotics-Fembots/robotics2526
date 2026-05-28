@@ -2,7 +2,7 @@ import pygame   #pip install pygame
 import board	#pip install board
 import busio	#pip install adafruit-blinka
 import adafruit_pca9685 #pip install adafruit-circuitpython-pca9685
-from adafruit_servokit import ServoKit #pip install adafruit-circuitpython-servokit
+#from adafruit_servokit import ServoKit #pip install adafruit-circuitpython-servokit
 import time
 import socket, json, sys
 
@@ -35,6 +35,9 @@ def main(ip_server):
 	shield.external_clock = True #enable 25MHz external crystal
 	#kit = ServoKit(channels=16)  # disabled: re-instantiates PCA9685, which resets MODE1 and clears EXTCLK; also unused below
 	shield.frequency = 100
+
+	mode1 = shield.mode1_reg
+	print(f"PCA9685 MODE1 = 0x{mode1:02X}  EXTCLK={'ON' if mode1 & 0x40 else 'OFF'}")
 
 	thrusterChannel1 = shield.channels[8] #J16
 	thrusterChannel2 = shield.channels[12] #J9
