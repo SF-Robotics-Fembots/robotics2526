@@ -38,8 +38,8 @@ def main():
 	#time.sleep(0.01)
 	shield = adafruit_pca9685.PCA9685(i2c)
 	shield.external_clock = True #enable 25MHz external crystal
-	kit = ServoKit(channels=16)
-	shield.frequency = 96
+	#kit = ServoKit(channels=16)
+	shield.frequency = 100
 
 	thrusterChannels = [
 		shield.channels[8],  # Thruster 1
