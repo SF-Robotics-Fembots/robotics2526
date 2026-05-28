@@ -32,9 +32,16 @@ def main(ip_server):
 	#i2c.write_byte_data(0x40, 0x00, 0x50)
 	#time.sleep(0.01)
 	shield = adafruit_pca9685.PCA9685(i2c)
-	shield.external_clock = True #enable 25MHz external crystal
-	#kit = ServoKit(channels=16)  # disabled: re-instantiates PCA9685, which resets MODE1 and clears EXTCLK; also unused below
-	shield.frequency = 100
+
+	# Manual external-clock + frequency setup (PCA9685 datasheet §7.3.5).
+	# The library's shield.external_clock setter is a no-op on this install, so
+	# we write the registers directly. EXTCLK can only be latched while SLEEP=1,
+	# and can only be cleared by a power cycle / software reset.
+	shield.mode1_reg = 0x10              # SLEEP=1
+	shield.mode1_reg = 0x10 | 0x40       # SLEEP=1 + EXTCLK=1 (latches external 25MHz clock)
+	shield.prescale_reg = 60             # 25e6 / (4096 * 100Hz) - 1 = 60  → ~100Hz PWM
+	shield.mode1_reg = 0x40 | 0x20       # EXTCLK=1 + AI=1, wake up
+	time.sleep(0.005)
 
 	mode1 = shield.mode1_reg
 	print(f"PCA9685 MODE1 = 0x{mode1:02X}  EXTCLK={'ON' if mode1 & 0x40 else 'OFF'}")
