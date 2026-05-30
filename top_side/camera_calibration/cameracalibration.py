@@ -1,3 +1,4 @@
+#checkerboard img needs to be taken underwater and needs to be taken straight on
 import numpy as np
 import cv2 as cv
 import glob
