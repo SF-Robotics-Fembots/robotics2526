@@ -1,4 +1,8 @@
-#this code works except doesn't account for blue hues
+#this code works for identifying crabs that are clear images
+# updated to do list:
+# 1) need to add the total count of green crabs to screen
+# 2) the rock and jonah crab should NOT have a bounding box around it nor be included in the final count
+
 import torch
 import numpy as np
 from torchvision import models, transforms
@@ -6,13 +10,12 @@ from PIL import Image
 import os
 from sklearn.metrics.pairwise import cosine_similarity
 import cv2
+from ultralytics import YOLO
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 KNOWN_CRABS_DIR = os.path.join(BASE_DIR, "known_crabs")
 
-# -------------------------------
 # Model setup (CPU, offline)
-# -------------------------------
 device = torch.device("cpu")
 
 #model = models.resnet18(pretrained=True)
@@ -23,6 +26,10 @@ model.fc = torch.nn.Identity()
 model = model.to(device)
 model.eval()
 
+# Load YOLO model for crab detection
+MODEL_PATH = os.path.join(BASE_DIR, "best.pt")
+yolo_model = YOLO(MODEL_PATH)
+
 transform = transforms.Compose([
     transforms.Resize((224, 224)),
     transforms.ToTensor(),
@@ -32,24 +39,59 @@ transform = transforms.Compose([
     )
 ])
 
-# -------------------------------
+def enhance_underwater(img):
+    img = np.array(img)
+
+    # 1. White balance
+    result = cv2.cvtColor(img, cv2.COLOR_RGB2LAB)
+    l, a, b = cv2.split(result)
+    clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
+    l = clahe.apply(l)
+    result = cv2.merge((l, a, b))
+    result = cv2.cvtColor(result, cv2.COLOR_LAB2RGB)
+
+    # 2. Reduce green/blue dominance
+    r, g, b = cv2.split(result)
+    r = cv2.add(r, 20)
+    result = cv2.merge((r, g, b))
+
+    # 3. Dehaze (simple dark channel prior)
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (15, 15))
+    dark = cv2.min(cv2.min(r, g), b)
+    dark = cv2.erode(dark, kernel)
+    haze = cv2.normalize(dark, None, 0, 255, cv2.NORM_MINMAX)
+    haze = cv2.cvtColor(haze, cv2.COLOR_GRAY2RGB)
+    result = cv2.addWeighted(result, 0.85, haze, -0.85, 0)
+
+    return Image.fromarray(result)
+
 # Feature extraction
-# -------------------------------
 def extract_features(image_input):
     if isinstance(image_input, str):
         img = Image.open(image_input).convert("RGB")
     else:
         img = image_input.convert("RGB")
-    img = transform(img).unsqueeze(0).to(device)
+    
+    #fix underwater color distortion before feature extraction
+    img = enhance_underwater(img)
+
+    #RGB version
+    rgb_tensor = transform(img).unsqueeze(0).to(device)
+
+    #grayscale version (reduces color dependence)
+    gray = img.convert("L").convert("RGB")
+    gray_tensor = transform(gray).unsqueeze(0).to(device)
 
     with torch.no_grad():
-        features = model(img)
+        rgb_feat = model(rgb_tensor)
+        gray_feat = model(gray_tensor)
+
+    #combine features
+    features = torch.cat([rgb_feat, gray_feat], dim=1)
 
     return features.cpu().numpy().flatten()
 
-# -------------------------------
 # Load known crab samples
-# -------------------------------
 known_features = {}
 
 #for file in os.listdir("known_crabs"):
@@ -60,65 +102,33 @@ for file in os.listdir(KNOWN_CRABS_DIR):
     path = os.path.join(KNOWN_CRABS_DIR, file)
     known_features[file] = extract_features(path)
 
-# -------------------------------
 # Thresholds
-# -------------------------------
-IDENTITY_THRESHOLD = 0.75
-GREEN_CRAB_THRESHOLD = 0.80
+# IDENTITY_THRESHOLD = 0.75
+# GREEN_CRAB_THRESHOLD = 0.80
+IDENTITY_THRESHOLD = 0.45
+GREEN_CRAB_THRESHOLD = 0.55
 
-# -------------------------------
 # Detection tuning parameters
-# -------------------------------
 MIN_CONTOUR_AREA = 500       # Skip contours smaller than this (filters noise)
 MAX_CONTOUR_AREA_RATIO = 0.8  # Skip contours larger than 80% of image (filters background)
 
-# -------------------------------
 # Region detection
-# -------------------------------
 def find_candidate_regions(image_path):
-    """
-    Run contour detection and return all bounding boxes that pass area filtering.
-    Returns (img_cv, [(x, y, w, h), ...])
-    """
-    img = cv2.imread(image_path)
-    if img is None:
-        raise ValueError(f"Could not read image: {image_path}")
-
-    img_area = img.shape[0] * img.shape[1]
-
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    blur = cv2.GaussianBlur(gray, (5, 5), 0)
-
-    _,  thresh = cv2.threshold(
-    blur, 60, 255, cv2.THRESH_BINARY_INV
-)
-    # thresh = cv2.threshold(
-    #     blur, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU
-    # )
-
-    kernel = np.ones((5, 5), np.uint8)
-    thresh = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel)
-
-    contours, _ = cv2.findContours(
-        thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
-    )
+    results = yolo_model(image_path)[0]
 
     candidates = []
-    for contour in contours:
-        area = cv2.contourArea(contour)
-        print("Contour area:", area)
-        if area < MIN_CONTOUR_AREA:
-            continue
-        if area > img_area * MAX_CONTOUR_AREA_RATIO:
-            continue
-        x, y, w, h = cv2.boundingRect(contour)
-        candidates.append((x, y, w, h))
+    for box in results.boxes:
+        x1, y1, x2, y2 = box.xyxy[0].tolist()
+        w = x2 - x1
+        h = y2 - y1
+        conf = float(box.conf[0])
+        candidates.append((int(x1), int(y1), int(w), int(h), conf))
 
-    return img, candidates
 
-# -------------------------------
+    img_cv = cv2.imread(image_path)
+    return img_cv, candidates
+
 # Non-maximum suppression
-# -------------------------------
 def compute_iou(box_a, box_b):
     ax, ay, aw, ah = box_a
     bx, by, bw, bh = box_b
@@ -161,9 +171,8 @@ def apply_nms(detections, iou_threshold=0.4):
 
     return kept
 
-# -------------------------------
+
 # Multi-crab detection pipeline
-# -------------------------------
 def detect_and_identify_crabs(image_path, output_path="output.jpg"):
     """
     Detect all crabs in image_path, identify each with ResNet18 cosine similarity,
@@ -186,9 +195,12 @@ def detect_and_identify_crabs(image_path, output_path="output.jpg"):
 
     detections = []
 
-    for (x, y, w, h) in candidates:
-        pad_x = int(w * 0.1)
-        pad_y = int(h * 0.1)
+    for (x, y, w, h, det_conf) in candidates:
+        if det_conf < 0.25:
+            continue
+
+        pad_x = int(w * 0.5)
+        pad_y = int(h * 0.5)
         crop_x1 = max(0, x - pad_x)
         crop_y1 = max(0, y - pad_y)
         crop_x2 = min(img_width, x + w + pad_x)
@@ -241,11 +253,12 @@ def detect_and_identify_crabs(image_path, output_path="output.jpg"):
 
     return detections
 
-# -------------------------------
 # Entry point
-# -------------------------------
 if __name__ == "__main__":
-    test_image = os.path.join(BASE_DIR, "test.jpg")
+    test_image = next(
+    (os.path.join(BASE_DIR, f) for f in os.listdir(BASE_DIR)
+     if f.lower().startswith("test.") and f.lower().endswith((".jpg", ".jpeg", ".png"))),
+    None)
     output_image = os.path.join(BASE_DIR, "output.jpg")
 
     results = detect_and_identify_crabs(test_image, output_path=output_image)

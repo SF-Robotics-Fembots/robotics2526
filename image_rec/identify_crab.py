@@ -1,7 +1,4 @@
-#this code works for identifying crabs that are clear images
-# updated to do list:
-# 1) need to add the total count of green crabs to screen
-# 2) the rock and jonah crab should NOT have a bounding box around it nor be included in the final count
+#completed to do list but needs tuning to work properly
 
 import torch
 import numpy as np
