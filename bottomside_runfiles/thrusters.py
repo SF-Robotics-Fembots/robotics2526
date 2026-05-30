@@ -310,8 +310,8 @@ def main(ip_server):
 				#goes through code two times
 				oldVertThrusterVals[vNum] = int((calcVertical(v_speed, vNum, vDirArray)))
 
-			clockArray = [1, 1, 1, 1]    #1 for CW, 2 for CCW
-			clockVertArray = [1, 1]
+			clockArray = [1, 1, 1, 1]    #1 for CW, -1 for CCW
+			clockVertArray = [-1, 1]
 
 			thrusterVals = [0, 0, 0, 0]
 			vertThrusterVals = [0, 0]
