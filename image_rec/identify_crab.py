@@ -1,5 +1,17 @@
 #completed to do list but needs tuning to work properly
-
+#1) train YOLO to detect actual crabs species
+    # a) Make new YOLO dataset with 3 classes.
+    # b) Label images carefully.
+    # c) Export YOLO dataset.
+    # d) Train new YOLO model.
+    # e) Replace best.pt.
+    # f) Update Python code to use YOLO class names.
+    # g) Test on real camera images.
+# 8. Add more images where the model fails.
+# 9. Retrain.
+#2) collect more crab imgs for each type
+#3) maybe add non-crab training examples
+#4) tune thresholds and NMS parameters to reduce false positives and improve detection accuracy
 import torch
 import numpy as np
 from torchvision import models, transforms
