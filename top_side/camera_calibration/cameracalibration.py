@@ -8,7 +8,7 @@ os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 ########### FIND CHESSBOARD CORNERS - objPoints AND imgPoints ############
 chessboardSize = (8,6)
-frameSize = (3024,4032)
+frameSize = (3840,2160)
 
 # # termination criteria
 criteria = (cv.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER, 30, 0.001)
@@ -21,7 +21,7 @@ objp[:,:2] = np.mgrid[0:chessboardSize[0], 0:chessboardSize[1]].T.reshape(-1,2)
 objPoints = [] # 3d point in real world space
 imgPoints = [] # 2d points in image plane.
 
-images = glob.glob(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'C*.jp*'))
+images = glob.glob(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'c*.png'))
 print(len(images))
 
 for image in images:
@@ -71,7 +71,7 @@ print("\nTranslation Vectors:\n", tvecs)
 
 
 
-img = cv.imread('measurement.jpg')
+img = cv.imread('measurement.png')
 h, w = img.shape[:2]
 newCameraMatrix, roi = cv.getOptimalNewCameraMatrix(cameraMatrix, dist, (w,h), 1, (w,h))
 

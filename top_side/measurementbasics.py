@@ -26,7 +26,7 @@ filename = image_path.split("/")[-1].split("\\")[-1]
 mtime = os.path.getmtime(image_path)
 file_datetime = datetime.datetime.fromtimestamp(mtime).strftime("%Y-%m-%d  %H:%M:%S")
 
-KNOWN_DISTANCE = 4.0
+KNOWN_DISTANCE = 5.0
 ZOOM_STEP      = 1.2
 ZOOM_MIN       = 1.0
 ZOOM_MAX       = 20.0
