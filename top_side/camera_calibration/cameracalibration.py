@@ -58,7 +58,7 @@ print("Image Points: ", imgPoints)
 #####CALIBRATION###############
 
 if len(objPoints) == 0:
-    raise RuntimeError("No corners found — check chessboardSize matches your board")
+    raise RuntimeError("No corners found â€” check chessboardSize matches your board")
 ret, cameraMatrix, dist, rvecs, tvecs = cv.calibrateCamera(objPoints, imgPoints, frameSize, None, None)
 
 print("Camera Calibrated: ", ret)
