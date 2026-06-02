@@ -132,10 +132,10 @@ def main():
 
 def set_throttle(channel, throttle_microseconds):
     """Convert microseconds (800-2200) to duty cycle and set channel"""
-    # Convert microseconds to duty cycle (0-65535)
-    # 1500 μs = 50% duty cycle = 32768
-    # Formula: (throttle_microseconds / 20000) * 65536
-    duty_cycle = int((throttle_microseconds / 20000) * 65536)
+    # Convert microseconds to duty cycle (0-65535) at 100 Hz (10 ms period)
+    # 1500 μs = 15% duty cycle ≈ 9830
+    # Formula: (throttle_microseconds / 10000) * 65536
+    duty_cycle = int((throttle_microseconds / 10000) * 65536)
     channel.duty_cycle = duty_cycle
 
 def test_direction(test_channel, all_channels, start_pw, end_pw, increment, direction):
@@ -163,7 +163,7 @@ def test_direction(test_channel, all_channels, start_pw, end_pw, increment, dire
         time.sleep(0.15)  # Wait for thruster to respond
         
         # Ask user for input
-        prompt = f"  PWM: {current_pw:4d} μs (Duty: {int((current_pw/20000)*65536):5d}) - Thrusting? [y/n/s]: "
+        prompt = f"  PWM: {current_pw:4d} μs (Duty: {int((current_pw/10000)*65536):5d}) - Thrusting? [y/n/s]: "
         user_input = input(prompt).lower().strip()
         
         if user_input == 'y':
