@@ -3,25 +3,23 @@
 Check if external crystal is being used on PCA9685
 """
 
-import smbus2
-
-# PCA9685 constants
-PCA9685_ADDRESS = 0x40  # Default I2C address
-MODE1_REG = 0x00        # MODE1 register address
-EXTCLK_BIT = 6          # External clock enable bit (bit 6)
+import board  # pip install board
+import busio  # pip install adafruit-blinka
+import adafruit_pca9685  # pip install adafruit-circuitpython-pca9685
 
 def check_external_clock():
     try:
-        # Initialize I2C bus (usually bus 1 on Raspberry Pi)
-        bus = smbus2.SMBus(1)
+        # Initialize I2C bus
+        i2c = busio.I2C(board.SCL, board.SDA)
+        
+        # Create PCA9685 shield object
+        shield = adafruit_pca9685.PCA9685(i2c)
         
         # Read MODE1 register
-        mode1_value = bus.read_byte_data(PCA9685_ADDRESS, MODE1_REG)
+        mode1_value = shield.mode1_reg
         
-        # Check if EXTCLK bit is set (bit 6)
-        extclk_enabled = (mode1_value >> EXTCLK_BIT) & 1
-        
-        bus.close()
+        # Check if EXTCLK bit is set (bit 6 = 0x40)
+        extclk_enabled = bool(mode1_value & 0x40)
         
         # Display results
         print(f"PCA9685 MODE1 Register Value: 0x{mode1_value:02X} (binary: {bin(mode1_value)})")
@@ -33,13 +31,17 @@ def check_external_clock():
         else:
             print("✗ EXTERNAL CRYSTAL IS NOT BEING USED (internal oscillator active)")
         
+        i2c.deinit()
         return extclk_enabled
         
     except Exception as e:
         print(f"Error: {e}")
         print("Make sure:")
-        print("  - PCA9685 is connected to I2C bus 1")
-        print("  - smbus2 is installed (pip install smbus2)")
+        print("  - PCA9685 is connected to I2C")
+        print("  - Required libraries are installed:")
+        print("    pip install board")
+        print("    pip install adafruit-blinka")
+        print("    pip install adafruit-circuitpython-pca9685")
         print("  - I2C is enabled on the system")
         return None
 
