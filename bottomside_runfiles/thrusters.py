@@ -15,6 +15,15 @@ def main(ip_server):
 	horiz_thrust_offset = 0
 	vert_off_value = 1500
 	vert_thrust_offset = 0
+	neutral_pwm = 1500
+	thruster_startup_pwm = [
+		{"positive": 1515, "negative": 1460},  # T1
+		{"positive": 1515, "negative": 1465},  # T2
+		{"positive": 1550, "negative": 1440},  # T3
+		{"positive": 1560, "negative": 1445},  # T4
+		{"positive": 1530, "negative": 1465},  # T5
+		{"positive": 1555, "negative": 1500},  # T6
+	]
 	dynamic_change = 999
 
 	#MODE1_REG = 0x00
@@ -67,6 +76,13 @@ def main(ip_server):
 		throttlePW = int(throttle_in / 10000 * 65536)
 		channel.duty_cycle = throttlePW
 		time.sleep(0)
+
+	def apply_startup_compensation(pwm, thresholds):
+		if pwm == neutral_pwm:
+			return neutral_pwm
+		if pwm > neutral_pwm:
+			return pwm + (thresholds["positive"] - neutral_pwm)
+		return pwm - (neutral_pwm - thresholds["negative"])
 
 	# def test_sequence(ip_server):
 	# 	channels = [thrusterChannel1, thrusterChannel2, thrusterChannel3, thrusterChannel4, thrusterChannel5, thrusterChannel6]
@@ -385,26 +401,12 @@ def main(ip_server):
 			#made changes starting here for duty cycle
 			if debug_l2: print(powerThrusterVals)
 
-			throttlePW = int(powerThrusterVals[0]/10000*65536)
-			thrusterChannel1.duty_cycle = throttlePW
-
-			throttlePW = int(powerThrusterVals[1]/10000*65536)
-			thrusterChannel2.duty_cycle = throttlePW
-
-			throttlePW = int(powerThrusterVals[2]/10000*65536)
-			thrusterChannel3.duty_cycle = throttlePW
-
-			throttlePW = int(powerThrusterVals[3]/10000*65536)
-			thrusterChannel4.duty_cycle = throttlePW
-
-			throttlePW = int(powerVertThrusterVals[0]/10000*65536)
-			thrusterChannel5.duty_cycle = throttlePW
-
-			throttlePW = int(powerVertThrusterVals[1]/10000*65536)
-			thrusterChannel6.duty_cycle = throttlePW
-
 			#Combine horizontal and vertical thruster values
 			allPowerVals = powerThrusterVals + powerVertThrusterVals
+			compensatedPowerVals = [
+				apply_startup_compensation(val, thruster_startup_pwm[index])
+				for index, val in enumerate(allPowerVals)
+			]
 
 			# Combine corresponding thruster objects
 			allThrusters = [
@@ -416,18 +418,18 @@ def main(ip_server):
 				thrusterChannel6
 			]
 
-			# Apply PWM to each thruster and print values in a single row
-			for thruster, val in zip(allThrusters, allPowerVals):
+			# Apply compensated PWM to each thruster and print values in a single row
+			for thruster, val in zip(allThrusters, compensatedPowerVals):
 				thruster.duty_cycle = int(val / 10000 * 65536)
 
 			#print(*allPowerVals)
 
 			# Print PWM values in a single row with labels
 			labels = ["T1", "T2", "T3", "T4", "T5", "T6"]
-			print(f"Time:{time.time()} | " + " | ".join(f"{label}:{val}" for label, val in zip(labels, allPowerVals)))
+			print(f"Time:{time.time()} | " + " | ".join(f"{label}:{val}" for label, val in zip(labels, compensatedPowerVals)))
 			
 			# Print actual ESC values (duty cycle)
-			esc_vals = [int(val / 10000 * 65536) for val in allPowerVals]
+			esc_vals = [int(val / 10000 * 65536) for val in compensatedPowerVals]
 			print(f"ESC Values: " + " | ".join(f"{label}:{val}" for label, val in zip(labels, esc_vals)))
 
 
