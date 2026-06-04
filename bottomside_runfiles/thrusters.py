@@ -16,14 +16,14 @@ def main(ip_server):
 	vert_off_value = 1500
 	vert_thrust_offset = 0
 	neutral_pwm = 1500
-	#thruster_startup_pwm = [
-	#	{"positive": 1510, "negative": 1460},  # T1
-	#	{"positive": 1515, "negative": 1465},  # T2
-	#	{"positive": 1555, "negative": 1440},  # T3
-	#	{"positive": 1560, "negative": 1450},  # T4
-	#	{"positive": 1515, "negative": 1465},  # T5
-	#	{"positive": 1560, "negative": 1450},  # T6
-	#]
+	thruster_startup_pwm = [
+		{"positive": 1510, "negative": 1460},  # T1
+		{"positive": 1515, "negative": 1465},  # T2
+		{"positive": 1555, "negative": 1440},  # T3
+		{"positive": 1560, "negative": 1450},  # T4
+		{"positive": 1515, "negative": 1465},  # T5
+		{"positive": 1560, "negative": 1450},  # T6
+	]
 	dynamic_change = 999
 
 	#MODE1_REG = 0x00
