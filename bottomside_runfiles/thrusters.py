@@ -16,6 +16,8 @@ def main(ip_server):
 	vert_off_value = 1500
 	vert_thrust_offset = 0
 	neutral_pwm = 1500
+	max_horizontal_thrust = 50
+	max_vertical_thrust = 50
 	thruster_startup_pwm = [
 		{"positive": 1510, "negative": 1460},  # T1
 		{"positive": 1515, "negative": 1465},  # T2
@@ -344,10 +346,18 @@ def main(ip_server):
 			for thrusters in range(0,4):
 				max_thruster = max(max_thruster, abs(thrusterVals[thrusters]))
 
-			if (max_thruster != 0) and (max_thruster >= 50):
+			if (max_thruster != 0) and (max_thruster >= max_horizontal_thrust):
 				for thrusters in range(0, 4):
-					thrusterVals[thrusters] = int(thrusterVals[thrusters] * (50 / max_thruster))
+					thrusterVals[thrusters] = int(thrusterVals[thrusters] * (max_horizontal_thrust / max_thruster))
 					#lines 284-291: finds the maximum value of all throttle values, then limits them if needed
+
+			max_vert_thruster = 0
+			for vertThrusters in range(0, 2):
+				max_vert_thruster = max(max_vert_thruster, abs(vertThrusterVals[vertThrusters]))
+
+			if (max_vert_thruster != 0) and (max_vert_thruster >= max_vertical_thrust):
+				for vertThrusters in range(0, 2):
+					vertThrusterVals[vertThrusters] = int(vertThrusterVals[vertThrusters] * (max_vertical_thrust / max_vert_thruster))
 
 
 			# new lists for the adjusted values for our power functions
@@ -379,8 +389,10 @@ def main(ip_server):
 			finalHorDiff = abs(powerThrusterVals[1] - horiz_off_value)
 			finalVertDiff = abs(powerVertThrusterVals[1] - vert_off_value)
 			finalTotal = (finalHorDiff * 4) + (finalVertDiff * 2)
+			print(f"Final Total: {finalTotal}")
 			if (finalTotal != 0):
 				percent = (1300/finalTotal) #2400
+				print(f"Power Multiplier: {percent}")
 				#finds percent to display how much we are exceeding power use (ex. exceeding power limit by 5%)
 				if (finalTotal > 1300): #was 1950, max 2934
 					for thruster in range(0, 4):
