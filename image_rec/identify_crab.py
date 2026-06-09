@@ -7,7 +7,7 @@ from ultralytics import YOLO
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 MODEL_PATH = os.path.join(BASE_DIR, "best_species.pt")
 
-CONFIDENCE_THRESHOLD = 0.25
+CONFIDENCE_THRESHOLD = 0.35
 
 CLASS_COLORS = {
     "green_crab": (0, 255, 0),

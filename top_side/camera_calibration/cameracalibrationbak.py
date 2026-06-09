@@ -24,8 +24,8 @@ SQUARES_Y = 5
 SQUARE_LENGTH = 1.0
 MARKER_LENGTH = 0.75
 
-# Common ArUco dictionary. Use the same dictionary when you create/print the board.
-ARUCO_DICTIONARY = cv.aruco.DICT_4X4_50
+# Use the same dictionary that was used to create/print the ChArUco board.
+ARUCO_DICTIONARY = cv.aruco.DICT_6X6_250
 
 # Minimum detected ChArUco corners needed before using a photo for calibration.
 MIN_CHARUCO_CORNERS = 6
@@ -72,17 +72,24 @@ def detect_markers(gray, dictionary, detector_params):
 
 
 def detect_charuco_corners(gray, board, dictionary, detector_params):
-    marker_corners, marker_ids, _ = detect_markers(gray, dictionary, detector_params)
+    if hasattr(cv.aruco, "CharucoDetector"):
+        detector = cv.aruco.CharucoDetector(board)
+        charuco_corners, charuco_ids, marker_corners, marker_ids = detector.detectBoard(gray)
+    else:
+        marker_corners, marker_ids, _ = detect_markers(gray, dictionary, detector_params)
+
+        if marker_ids is None or len(marker_ids) == 0:
+            return False, marker_corners, marker_ids, None, None
+
+        _, charuco_corners, charuco_ids = cv.aruco.interpolateCornersCharuco(
+            marker_corners,
+            marker_ids,
+            gray,
+            board,
+        )
 
     if marker_ids is None or len(marker_ids) == 0:
         return False, marker_corners, marker_ids, None, None
-
-    _, charuco_corners, charuco_ids = cv.aruco.interpolateCornersCharuco(
-        marker_corners,
-        marker_ids,
-        gray,
-        board,
-    )
 
     found = (
         charuco_corners is not None
@@ -115,9 +122,14 @@ def main():
     image_points = []
     frame_size = None
 
-    images = sorted(glob.glob(os.path.join(BASE_DIR, "cam_*.png")))
+    images = sorted(glob.glob(os.path.join(BASE_DIR, "WIN*.jpg")))
     if not images:
-        images = sorted(glob.glob(os.path.join(BASE_DIR, "c*.png")))
+        images = sorted(glob.glob(os.path.join(BASE_DIR, "W*.jpg")))
+    images = [
+        image_path
+        for image_path in images
+        if not image_path.lower().endswith("_charuco_detected.jpg")
+    ]
 
     print(f"Calibration images found: {len(images)}")
 
@@ -168,14 +180,23 @@ def main():
             "ARUCO_DICTIONARY match the printed board."
         )
 
-    ret, camera_matrix, dist, rvecs, tvecs = cv.aruco.calibrateCameraCharuco(
-        all_charuco_corners,
-        all_charuco_ids,
-        board,
-        frame_size,
-        None,
-        None,
-    )
+    if hasattr(cv.aruco, "calibrateCameraCharuco"):
+        ret, camera_matrix, dist, rvecs, tvecs = cv.aruco.calibrateCameraCharuco(
+            all_charuco_corners,
+            all_charuco_ids,
+            board,
+            frame_size,
+            None,
+            None,
+        )
+    else:
+        ret, camera_matrix, dist, rvecs, tvecs = cv.calibrateCamera(
+            object_points,
+            image_points,
+            frame_size,
+            None,
+            None,
+        )
 
     print("Camera Calibrated:", ret)
     print("\nCamera Matrix:\n", camera_matrix)
