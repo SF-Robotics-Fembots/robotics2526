@@ -44,9 +44,11 @@ CLAHE_TILE_GRID  = (8, 8)
 
 # Homography rectification: real-world size of the measurement block whose four
 # corners get clicked (clicked order: top-left, top-right, bottom-right, bottom-left).
-BLOCK_WIDTH_MM  = 125.0
-BLOCK_HEIGHT_MM = 27.0
-RECTIFY_MAX_DIM = 5000   # cap the warped canvas (px) so steep angles don't blow up memory
+BLOCK_WIDTH_MM   = 125.0
+BLOCK_HEIGHT_MM  = 27.0
+RECTIFY_PX_PER_MM = 4.0    # fixed output resolution of the rectified image
+RECTIFY_MARGIN_MM = 150.0  # real-world area kept around the block on every side
+RECTIFY_MAX_DIM   = 5000   # cap the canvas (px) so a huge margin can't blow up memory
 
 font      = cv2.FONT_HERSHEY_SIMPLEX
 scale     = 0.62
@@ -289,41 +291,30 @@ def toggle_clahe():
     print(f"CLAHE {'ON' if clahe_enabled[0] else 'OFF'}")
 
 def compute_rectification():
-    # Build a homography that maps the four clicked block corners to a
-    # fronto-parallel rectangle, then warp the whole image so the plane the
-    # block sits on becomes flat. Scale (px/mm) comes from the block width.
+    # Map the four clicked block corners to a fronto-parallel rectangle of the
+    # block's true proportions, placed inside a fixed-size canvas defined in
+    # real-world space (block + margin). Sizing the output in mm-space — rather
+    # than from the warped image extent — keeps it robust at grazing angles,
+    # where the far plane would otherwise blow up and collapse the scale.
     src = np.array(rectify_corners, dtype=np.float32)   # TL, TR, BR, BL
-    top_px    = np.linalg.norm(src[1] - src[0])
-    bottom_px = np.linalg.norm(src[2] - src[3])
-    avg_width_px = (top_px + bottom_px) / 2.0
-    scale = avg_width_px / BLOCK_WIDTH_MM                # px per mm
 
-    def build(scale_value):
-        target_w = BLOCK_WIDTH_MM * scale_value
-        target_h = BLOCK_HEIGHT_MM * scale_value
-        dst = np.array([[0, 0], [target_w, 0], [target_w, target_h], [0, target_h]], dtype=np.float32)
-        homography = cv2.getPerspectiveTransform(src, dst)
-        bh, bw = base_img[0].shape[:2]
-        img_corners = np.array([[0, 0], [bw, 0], [bw, bh], [0, bh]], dtype=np.float32).reshape(-1, 1, 2)
-        warped = cv2.perspectiveTransform(img_corners, homography).reshape(-1, 2)
-        min_xy = warped.min(axis=0)
-        max_xy = warped.max(axis=0)
-        return homography, min_xy, max_xy
+    span_w_mm = BLOCK_WIDTH_MM + 2 * RECTIFY_MARGIN_MM
+    span_h_mm = BLOCK_HEIGHT_MM + 2 * RECTIFY_MARGIN_MM
+    # fixed resolution, clamped so a large margin can't exceed the canvas cap
+    scale = min(RECTIFY_PX_PER_MM, RECTIFY_MAX_DIM / max(span_w_mm, span_h_mm))
 
-    homography, min_xy, max_xy = build(scale)
-    out_w, out_h = (max_xy - min_xy)
+    offset = RECTIFY_MARGIN_MM * scale
+    block_w_px = BLOCK_WIDTH_MM * scale
+    block_h_px = BLOCK_HEIGHT_MM * scale
+    dst = np.array([
+        [offset,              offset],
+        [offset + block_w_px, offset],
+        [offset + block_w_px, offset + block_h_px],
+        [offset,              offset + block_h_px],
+    ], dtype=np.float32)
 
-    # cap the canvas; if too big, shrink the scale uniformly and rebuild
-    cap = min(1.0, RECTIFY_MAX_DIM / max(out_w, out_h))
-    if cap < 1.0:
-        scale *= cap
-        homography, min_xy, max_xy = build(scale)
-        out_w, out_h = (max_xy - min_xy)
-
-    # translate so the warped image starts at (0, 0)
-    translation = np.array([[1, 0, -min_xy[0]], [0, 1, -min_xy[1]], [0, 0, 1]], dtype=np.float64)
-    rectify_H[0]     = translation @ homography
-    rectify_size[0]  = (int(np.ceil(out_w)), int(np.ceil(out_h)))
+    rectify_H[0]     = cv2.getPerspectiveTransform(src, dst)
+    rectify_size[0]  = (int(round(span_w_mm * scale)), int(round(span_h_mm * scale)))
     rectify_scale[0] = scale
 
 def start_rectify_pick():
