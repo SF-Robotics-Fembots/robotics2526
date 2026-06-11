@@ -37,6 +37,17 @@ ZOOM_STEP      = 1.2
 ZOOM_MIN       = 1.0
 ZOOM_MAX       = 20.0
 
+# CLAHE (on LAB L channel) tuning: raise clip limit if edges stay flat,
+# lower it if noise gets amplified.
+CLAHE_CLIP_LIMIT = 2.0
+CLAHE_TILE_GRID  = (8, 8)
+
+# Homography rectification: real-world size of the measurement block whose four
+# corners get clicked (clicked order: top-left, top-right, bottom-right, bottom-left).
+BLOCK_WIDTH_MM  = 125.0
+BLOCK_HEIGHT_MM = 27.0
+RECTIFY_MAX_DIM = 5000   # cap the warped canvas (px) so steep angles don't blow up memory
+
 font      = cv2.FONT_HERSHEY_SIMPLEX
 scale     = 0.62
 small_scale = 0.52
@@ -56,8 +67,27 @@ PAIR_COLORS = [
 WINDOW_NAME    = "Image Viewer"
 clicks         = []
 ticker         = []
+click_ticker_counts = []   # parallel to clicks: ticker lines each click appended (for undo)
 pixels_per_mm = [None]
 undistort_button_rect = [None]
+undo_button_rect = [None]
+save_button_rect = [None]
+white_balance_button_rect = [None]
+clahe_button_rect = [None]
+rectify_button_rect = [None]
+has_undistorted = [False]   # image may only be undistorted once
+undistorted_img = [None]    # holds the undistorted image awaiting a manual save
+base_img = [img.copy()]     # image without WB/CLAHE/rectify toggles applied
+wb_enabled = [False]        # gray-world white balance toggle
+clahe_enabled = [False]     # CLAHE contrast toggle
+
+# Homography rectification state
+rectify_enabled   = [False]   # show rectified (warped) view
+rectify_pick_mode = [False]   # currently clicking the 4 block corners
+rectify_corners   = []        # up to 4 (x, y) corner points in base-image coords
+rectify_H         = [None]    # 3x3 homography (base coords -> rectified canvas)
+rectify_size      = [None]    # (out_w, out_h) of the rectified canvas
+rectify_scale     = [None]    # px per mm in the rectified image (auto from block)
 
 # Zoom / pan state
 zoom_level     = 1.0
@@ -112,12 +142,33 @@ def reset_image_state(new_img, new_filename=None):
 
     clicks.clear()
     ticker.clear()
+    click_ticker_counts.clear()
     pixels_per_mm[0] = None
     zoom_level = 1.0
     view_x = 0.0
     view_y = 0.0
 
+    # new underlying image becomes the unadjusted base; toggles start off
+    base_img[0] = new_img.copy()
+    wb_enabled[0] = False
+    clahe_enabled[0] = False
+
+def undo_last_click():
+    if not clicks:
+        return
+    clicks.pop()
+    removed_lines = click_ticker_counts.pop() if click_ticker_counts else 1
+    for _ in range(removed_lines):
+        if ticker:
+            ticker.pop()
+    # calibration (yellow pair) is only valid once its 2 points exist
+    if len(clicks) < 2:
+        pixels_per_mm[0] = None
+    cv2.imshow(WINDOW_NAME, draw_frame(*get_display_size()))
+
 def undistort_loaded_image():
+    if has_undistorted[0]:
+        return
     try:
         calibration = read_calibration_csv(CALIBRATION_CSV)
         camera_matrix = calibration["camera_matrix"]
@@ -136,14 +187,174 @@ def undistort_loaded_image():
         if roi_w > 0 and roi_h > 0:
             undistorted = undistorted[y:y + roi_h, x:x + roi_w]
 
+        undistorted_img[0] = undistorted   # stash for manual save via the Save button
         reset_image_state(undistorted, f"undistorted_{filename}")
+        has_undistorted[0] = True
         ticker.append(("Image undistorted using saved calibration", (0, 255, 0)))
+        ticker.append(("Press Save Image to write it to disk", (0, 255, 0)))
         cv2.imshow(WINDOW_NAME, draw_frame(*get_display_size()))
         print("Image undistorted using:", CALIBRATION_CSV)
     except Exception as error:
         message = f"Could not undistort image: {error}"
         print(message)
         messagebox.showerror("Undistort Image", message)
+
+def save_undistorted_image():
+    if undistorted_img[0] is None:
+        return
+    try:
+        # Save to the same folder the original image came from.
+        source_dir = os.path.dirname(image_path)
+        base_name, ext = os.path.splitext(os.path.basename(image_path))
+        if ext.lower() not in (".jpg", ".jpeg", ".png", ".bmp", ".tiff"):
+            ext = ".png"
+        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        save_path = os.path.join(source_dir, f"undistorted_{base_name}_{timestamp}{ext}")
+        cv2.imwrite(save_path, undistorted_img[0])
+        ticker.append((f"Saved: {os.path.basename(save_path)}", (0, 255, 0)))
+        cv2.imshow(WINDOW_NAME, draw_frame(*get_display_size()))
+        print("Saved undistorted image to:", save_path)
+    except Exception as error:
+        message = f"Could not save image: {error}"
+        print(message)
+        messagebox.showerror("Save Image", message)
+
+def gray_world(image):
+    # Gray-world white balance: scale each channel so its mean matches the
+    # overall gray mean, removing the blue-green underwater color cast.
+    balanced = image.astype(np.float32)
+    means = [balanced[:, :, c].mean() for c in range(3)]
+    gray_mean = sum(means) / 3.0
+    for c in range(3):
+        if means[c] > 1e-6:
+            balanced[:, :, c] *= gray_mean / means[c]
+    return np.clip(balanced, 0, 255).astype(np.uint8)
+
+def clahe_l_channel(image):
+    # CLAHE on the L (lightness) channel in LAB space — boosts local contrast
+    # without shifting colors, since a and b are left untouched.
+    lab = cv2.cvtColor(image, cv2.COLOR_BGR2LAB)
+    l_channel, a_channel, b_channel = cv2.split(lab)
+    clahe = cv2.createCLAHE(clipLimit=CLAHE_CLIP_LIMIT, tileGridSize=CLAHE_TILE_GRID)
+    l_channel = clahe.apply(l_channel)
+    return cv2.cvtColor(cv2.merge((l_channel, a_channel, b_channel)), cv2.COLOR_LAB2BGR)
+
+def recompute_image():
+    # Rebuild the displayed image from the unadjusted base, applying whichever
+    # toggles are on: rectify (geometry) first, then white balance, then CLAHE.
+    global img, w, h, zoom_level, view_x, view_y
+    if base_img[0] is None:
+        return
+
+    if rectify_enabled[0] and rectify_H[0] is not None:
+        result = cv2.warpPerspective(base_img[0], rectify_H[0], rectify_size[0])
+    else:
+        result = base_img[0].copy()
+    if wb_enabled[0]:
+        result = gray_world(result)
+    if clahe_enabled[0]:
+        result = clahe_l_channel(result)
+
+    # Rectify changes the image dimensions/coordinate system, so when geometry
+    # changes we reset the view and drop measurements taken in the old frame.
+    new_h, new_w = result.shape[:2]
+    if (new_w, new_h) != (w, h):
+        w, h = new_w, new_h
+        zoom_level = 1.0
+        view_x = 0.0
+        view_y = 0.0
+        clicks.clear()
+        click_ticker_counts.clear()
+        pixels_per_mm[0] = None
+
+    img = result
+    # rectified view has a uniform, known scale derived from the block
+    if rectify_enabled[0] and rectify_scale[0] is not None:
+        pixels_per_mm[0] = rectify_scale[0]
+    # keep the stashed copy in sync so a later save reflects the toggles
+    if undistorted_img[0] is not None:
+        undistorted_img[0] = result
+    cv2.imshow(WINDOW_NAME, draw_frame(*get_display_size()))
+
+def toggle_white_balance():
+    wb_enabled[0] = not wb_enabled[0]
+    ticker.append((f"White balance {'ON' if wb_enabled[0] else 'OFF'}", (0, 255, 0)))
+    recompute_image()
+    print(f"White balance {'ON' if wb_enabled[0] else 'OFF'}")
+
+def toggle_clahe():
+    clahe_enabled[0] = not clahe_enabled[0]
+    ticker.append((f"CLAHE {'ON' if clahe_enabled[0] else 'OFF'}", (0, 255, 0)))
+    recompute_image()
+    print(f"CLAHE {'ON' if clahe_enabled[0] else 'OFF'}")
+
+def compute_rectification():
+    # Build a homography that maps the four clicked block corners to a
+    # fronto-parallel rectangle, then warp the whole image so the plane the
+    # block sits on becomes flat. Scale (px/mm) comes from the block width.
+    src = np.array(rectify_corners, dtype=np.float32)   # TL, TR, BR, BL
+    top_px    = np.linalg.norm(src[1] - src[0])
+    bottom_px = np.linalg.norm(src[2] - src[3])
+    avg_width_px = (top_px + bottom_px) / 2.0
+    scale = avg_width_px / BLOCK_WIDTH_MM                # px per mm
+
+    def build(scale_value):
+        target_w = BLOCK_WIDTH_MM * scale_value
+        target_h = BLOCK_HEIGHT_MM * scale_value
+        dst = np.array([[0, 0], [target_w, 0], [target_w, target_h], [0, target_h]], dtype=np.float32)
+        homography = cv2.getPerspectiveTransform(src, dst)
+        bh, bw = base_img[0].shape[:2]
+        img_corners = np.array([[0, 0], [bw, 0], [bw, bh], [0, bh]], dtype=np.float32).reshape(-1, 1, 2)
+        warped = cv2.perspectiveTransform(img_corners, homography).reshape(-1, 2)
+        min_xy = warped.min(axis=0)
+        max_xy = warped.max(axis=0)
+        return homography, min_xy, max_xy
+
+    homography, min_xy, max_xy = build(scale)
+    out_w, out_h = (max_xy - min_xy)
+
+    # cap the canvas; if too big, shrink the scale uniformly and rebuild
+    cap = min(1.0, RECTIFY_MAX_DIM / max(out_w, out_h))
+    if cap < 1.0:
+        scale *= cap
+        homography, min_xy, max_xy = build(scale)
+        out_w, out_h = (max_xy - min_xy)
+
+    # translate so the warped image starts at (0, 0)
+    translation = np.array([[1, 0, -min_xy[0]], [0, 1, -min_xy[1]], [0, 0, 1]], dtype=np.float64)
+    rectify_H[0]     = translation @ homography
+    rectify_size[0]  = (int(np.ceil(out_w)), int(np.ceil(out_h)))
+    rectify_scale[0] = scale
+
+def start_rectify_pick():
+    # pick corners on the un-rectified geometry
+    if rectify_enabled[0]:
+        rectify_enabled[0] = False
+        recompute_image()
+    rectify_pick_mode[0] = True
+    rectify_corners.clear()
+    ticker.append(("Click block corners: TL, TR, BR, BL", (0, 200, 255)))
+    cv2.imshow(WINDOW_NAME, draw_frame(*get_display_size()))
+
+def toggle_rectify():
+    if rectify_H[0] is None:
+        return
+    rectify_enabled[0] = not rectify_enabled[0]
+    ticker.append((f"Rectify {'ON' if rectify_enabled[0] else 'OFF'}", (0, 255, 0)))
+    recompute_image()
+    print(f"Rectify {'ON' if rectify_enabled[0] else 'OFF'}")
+
+def rectify_button_action():
+    if rectify_pick_mode[0]:
+        # cancel an in-progress pick
+        rectify_pick_mode[0] = False
+        rectify_corners.clear()
+        ticker.append(("Rectify pick cancelled", (0, 200, 255)))
+        cv2.imshow(WINDOW_NAME, draw_frame(*get_display_size()))
+    elif rectify_H[0] is None:
+        start_rectify_pick()
+    else:
+        toggle_rectify()
 
 def pair_color(i):
     return PAIR_COLORS[(i // 2) % len(PAIR_COLORS)]
@@ -191,6 +402,68 @@ def get_undistort_button_rect():
     y2 = y1 + th + padding * 4
     return label, (x1, y1, x2, y2)
 
+def get_undo_button_rect():
+    label = "Undo Click"
+    (tw, th), _ = cv2.getTextSize(label, font, button_scale, thickness)
+    # sit directly below the undistort button, sharing the same left edge
+    _, (ux1, _uy1, _ux2, uy2) = get_undistort_button_rect()
+    x1 = ux1
+    y1 = uy2 + padding
+    x2 = x1 + tw + padding * 5
+    y2 = y1 + th + padding * 4
+    return label, (x1, y1, x2, y2)
+
+def get_save_button_rect():
+    label = "Save Image"
+    (tw, th), _ = cv2.getTextSize(label, font, button_scale, thickness)
+    # sit directly below the undo button, sharing the same left edge
+    _, (sx1, _sy1, _sx2, sy2) = get_undo_button_rect()
+    x1 = sx1
+    y1 = sy2 + padding
+    x2 = x1 + tw + padding * 5
+    y2 = y1 + th + padding * 4
+    return label, (x1, y1, x2, y2)
+
+def get_white_balance_button_rect():
+    label = "White Balance"
+    (tw, th), _ = cv2.getTextSize(label, font, button_scale, thickness)
+    # sit directly below the save button, sharing the same left edge
+    _, (wx1, _wy1, _wx2, wy2) = get_save_button_rect()
+    x1 = wx1
+    y1 = wy2 + padding
+    x2 = x1 + tw + padding * 5
+    y2 = y1 + th + padding * 4
+    return label, (x1, y1, x2, y2)
+
+def get_clahe_button_rect():
+    label = "CLAHE Contrast"
+    (tw, th), _ = cv2.getTextSize(label, font, button_scale, thickness)
+    # sit directly below the white balance button, sharing the same left edge
+    _, (cx1, _cy1, _cx2, cy2) = get_white_balance_button_rect()
+    x1 = cx1
+    y1 = cy2 + padding
+    x2 = x1 + tw + padding * 5
+    y2 = y1 + th + padding * 4
+    return label, (x1, y1, x2, y2)
+
+def get_rectify_button_label():
+    if rectify_pick_mode[0]:
+        return f"Picking corner {len(rectify_corners) + 1}/4"
+    if rectify_H[0] is None:
+        return "Rectify Block"
+    return "Rectify: ON" if rectify_enabled[0] else "Rectify: OFF"
+
+def get_rectify_button_rect():
+    # width sized to the longest possible label so the box doesn't jump around
+    (tw, th), _ = cv2.getTextSize("Picking corner 4/4", font, button_scale, thickness)
+    # sit directly below the CLAHE button, sharing the same left edge
+    _, (rx1, _ry1, _rx2, ry2) = get_clahe_button_rect()
+    x1 = rx1
+    y1 = ry2 + padding
+    x2 = x1 + tw + padding * 5
+    y2 = y1 + th + padding * 4
+    return get_rectify_button_label(), (x1, y1, x2, y2)
+
 def is_inside_rect(x, y, rect):
     if rect is None:
         return False
@@ -207,23 +480,33 @@ def clamp_view():
     view_x = max(0.0, min(view_x, w - w / zoom_level))
     view_y = max(0.0, min(view_y, h - h / zoom_level))
 
-def display_to_orig(dx, dy, dw, dh):
-    return (
-        int(view_x + dx * (w / zoom_level) / dw),
-        int(view_y + dy * (h / zoom_level) / dh),
-    )
-
-def orig_to_display(ox, oy, dw, dh):
-    return (
-        int((ox - view_x) * zoom_level * dw / w),
-        int((oy - view_y) * zoom_level * dh / h),
-    )
-
-def draw_frame(dw, dh):
+def get_crop_bounds():
+    # the exact source-image region that draw_frame crops and resizes to fill
+    # the display. All display<->original mapping uses this so clicks line up.
     x1 = max(0, int(view_x))
     y1 = max(0, int(view_y))
     x2 = min(w, int(view_x + w / zoom_level) + 1)
     y2 = min(h, int(view_y + h / zoom_level) + 1)
+    return x1, y1, x2, y2
+
+def display_to_orig(dx, dy, dw, dh):
+    # invert the exact crop+resize draw_frame uses; keep sub-pixel precision so
+    # the stored point matches the click, rounding only happens when drawing back
+    x1, y1, x2, y2 = get_crop_bounds()
+    return (
+        x1 + dx * (x2 - x1) / dw,
+        y1 + dy * (y2 - y1) / dh,
+    )
+
+def orig_to_display(ox, oy, dw, dh):
+    x1, y1, x2, y2 = get_crop_bounds()
+    return (
+        round((ox - x1) * dw / (x2 - x1)),
+        round((oy - y1) * dh / (y2 - y1)),
+    )
+
+def draw_frame(dw, dh):
+    x1, y1, x2, y2 = get_crop_bounds()
     out = cv2.resize(img[y1:y2, x1:x2], (dw, dh), interpolation=cv2.INTER_LINEAR)
 
     # --- Click dots ---
@@ -232,13 +515,85 @@ def draw_frame(dw, dh):
         if 0 <= dx < dw and 0 <= dy < dh:
             cv2.circle(out, (dx, dy), 5, pair_color(idx), -1)
 
+    # --- Rectification corner markers (while picking) ---
+    if rectify_pick_mode[0]:
+        corner_names = ["TL", "TR", "BR", "BL"]
+        pts = []
+        for ci, (ox, oy) in enumerate(rectify_corners):
+            dx, dy = orig_to_display(ox, oy, dw, dh)
+            pts.append((dx, dy))
+            cv2.drawMarker(out, (dx, dy), (0, 0, 255), cv2.MARKER_CROSS, 16, 2)
+            cv2.putText(out, corner_names[ci], (dx + 6, dy - 6), font, small_scale, (0, 0, 255), thickness, line_type)
+        # connect the corners placed so far to preview the quad
+        if len(pts) >= 2:
+            cv2.polylines(out, [np.array(pts, dtype=np.int32)], len(pts) == 4, (0, 0, 255), 1, line_type)
+
     # --- Undistort button ---
     label, button_rect = get_undistort_button_rect()
     undistort_button_rect[0] = button_rect
     bx1, by1, bx2, by2 = button_rect
-    draw_filled_rect_alpha(out, (bx1, by1), (bx2, by2), (32, 74, 104), 0.88)
+    undistort_enabled = not has_undistorted[0]
+    undistort_fill = (32, 74, 104) if undistort_enabled else (40, 40, 40)
+    undistort_text_color = (255, 255, 255) if undistort_enabled else (130, 130, 130)
+    draw_filled_rect_alpha(out, (bx1, by1), (bx2, by2), undistort_fill, 0.88)
     cv2.rectangle(out, (bx1, by1), (bx2, by2), (180, 225, 245), 1, line_type)
-    cv2.putText(out, label, (bx1 + padding * 2, by2 - padding * 2), font, button_scale, (255,255,255), thickness, line_type)
+    cv2.putText(out, label, (bx1 + padding * 2, by2 - padding * 2), font, button_scale, undistort_text_color, thickness, line_type)
+
+    # --- Undo button ---
+    undo_label, undo_rect = get_undo_button_rect()
+    undo_button_rect[0] = undo_rect
+    ux1, uy1, ux2, uy2 = undo_rect
+    undo_enabled = len(clicks) > 0
+    undo_fill = (40, 60, 90) if undo_enabled else (40, 40, 40)
+    undo_text_color = (255, 255, 255) if undo_enabled else (130, 130, 130)
+    draw_filled_rect_alpha(out, (ux1, uy1), (ux2, uy2), undo_fill, 0.88)
+    cv2.rectangle(out, (ux1, uy1), (ux2, uy2), (180, 225, 245), 1, line_type)
+    cv2.putText(out, undo_label, (ux1 + padding * 2, uy2 - padding * 2), font, button_scale, undo_text_color, thickness, line_type)
+
+    # --- Save button ---
+    save_label, save_rect = get_save_button_rect()
+    save_button_rect[0] = save_rect
+    sx1, sy1, sx2, sy2 = save_rect
+    save_enabled = undistorted_img[0] is not None
+    save_fill = (40, 90, 60) if save_enabled else (40, 40, 40)
+    save_text_color = (255, 255, 255) if save_enabled else (130, 130, 130)
+    draw_filled_rect_alpha(out, (sx1, sy1), (sx2, sy2), save_fill, 0.88)
+    cv2.rectangle(out, (sx1, sy1), (sx2, sy2), (180, 225, 245), 1, line_type)
+    cv2.putText(out, save_label, (sx1 + padding * 2, sy2 - padding * 2), font, button_scale, save_text_color, thickness, line_type)
+
+    # --- White balance button (toggle) ---
+    wb_label, wb_rect = get_white_balance_button_rect()
+    white_balance_button_rect[0] = wb_rect
+    wx1, wy1, wx2, wy2 = wb_rect
+    wb_fill = (40, 120, 40) if wb_enabled[0] else (90, 70, 40)
+    wb_border = (120, 255, 120) if wb_enabled[0] else (180, 225, 245)
+    draw_filled_rect_alpha(out, (wx1, wy1), (wx2, wy2), wb_fill, 0.88)
+    cv2.rectangle(out, (wx1, wy1), (wx2, wy2), wb_border, 1, line_type)
+    cv2.putText(out, wb_label, (wx1 + padding * 2, wy2 - padding * 2), font, button_scale, (255, 255, 255), thickness, line_type)
+
+    # --- CLAHE button (toggle) ---
+    clahe_label, clahe_rect = get_clahe_button_rect()
+    clahe_button_rect[0] = clahe_rect
+    cx1, cy1, cx2, cy2 = clahe_rect
+    clahe_fill = (40, 120, 40) if clahe_enabled[0] else (70, 40, 90)
+    clahe_border = (120, 255, 120) if clahe_enabled[0] else (180, 225, 245)
+    draw_filled_rect_alpha(out, (cx1, cy1), (cx2, cy2), clahe_fill, 0.88)
+    cv2.rectangle(out, (cx1, cy1), (cx2, cy2), clahe_border, 1, line_type)
+    cv2.putText(out, clahe_label, (cx1 + padding * 2, cy2 - padding * 2), font, button_scale, (255, 255, 255), thickness, line_type)
+
+    # --- Rectify button (pick corners / toggle) ---
+    rect_label, rect_rect = get_rectify_button_rect()
+    rectify_button_rect[0] = rect_rect
+    rx1, ry1, rx2, ry2 = rect_rect
+    if rectify_pick_mode[0]:
+        rect_fill, rect_border = (40, 90, 160), (120, 200, 255)   # picking
+    elif rectify_enabled[0]:
+        rect_fill, rect_border = (40, 120, 40), (120, 255, 120)   # on
+    else:
+        rect_fill, rect_border = (90, 60, 40), (180, 225, 245)    # off / not set
+    draw_filled_rect_alpha(out, (rx1, ry1), (rx2, ry2), rect_fill, 0.88)
+    cv2.rectangle(out, (rx1, ry1), (rx2, ry2), rect_border, 1, line_type)
+    cv2.putText(out, rect_label, (rx1 + padding * 2, ry2 - padding * 2), font, button_scale, (255, 255, 255), thickness, line_type)
 
     # --- Lower-right info label ---
     info_lines = [filename, f"{w} x {h}", file_datetime, f"Zoom {zoom_level:.1f}x"]
@@ -302,18 +657,59 @@ def mouse_callback(event, x, y, flags, _param):
             undistort_loaded_image()
             return
 
+        if is_inside_rect(x, y, undo_button_rect[0]):
+            undo_last_click()
+            return
+
+        if is_inside_rect(x, y, save_button_rect[0]):
+            save_undistorted_image()
+            return
+
+        if is_inside_rect(x, y, white_balance_button_rect[0]):
+            toggle_white_balance()
+            return
+
+        if is_inside_rect(x, y, clahe_button_rect[0]):
+            toggle_clahe()
+            return
+
+        if is_inside_rect(x, y, rectify_button_rect[0]):
+            rectify_button_action()
+            return
+
         orig_x, orig_y = display_to_orig(x, y, dw, dh)
+
+        # --- Picking block corners for rectification ---
+        if rectify_pick_mode[0]:
+            rectify_corners.append((orig_x, orig_y))
+            ticker.append((f"Corner {len(rectify_corners)}/4 set", (0, 200, 255)))
+            if len(rectify_corners) == 4:
+                compute_rectification()
+                rectify_pick_mode[0] = False
+                rectify_enabled[0] = True
+                clicks.clear()
+                click_ticker_counts.clear()
+                recompute_image()
+                ticker.append((f"Rectified: {rectify_scale[0]:.2f} px/mm from block", (0, 255, 0)))
+            cv2.imshow(WINDOW_NAME, draw_frame(dw, dh))
+            return
+
         idx        = len(clicks)
         pair       = idx // 2
         pt_in_pair = idx % 2 + 1
         color      = pair_color(idx)
 
+        # when rectified, scale is known from the block, so every pair measures;
+        # otherwise the first pair calibrates against the yellow reference
+        auto_scaled = rectify_enabled[0] and pixels_per_mm[0]
+
         clicks.append((orig_x, orig_y))
-        ticker.append((f"M{pair+1}.P{pt_in_pair}: ({orig_x}, {orig_y})", color))
+        ticker.append((f"M{pair+1}.P{pt_in_pair}: ({round(orig_x)}, {round(orig_y)})", color))
+        ticker_lines_added = 1
 
         if pt_in_pair == 2:
             dist_px = px_distance(clicks[-2], clicks[-1])
-            if pair == 0:
+            if pair == 0 and not auto_scaled:
                 pixels_per_mm[0] = dist_px / KNOWN_DISTANCE_MM
                 line = f"  {dist_px:.1f}px = {KNOWN_DISTANCE_MM:.1f}mm  ->  {pixels_per_mm[0]:.2f}px/mm"
             elif pixels_per_mm[0]:
@@ -322,8 +718,10 @@ def mouse_callback(event, x, y, flags, _param):
             else:
                 line = f"  {dist_px:.1f}px  (calibrate yellow first)"
             ticker.append((line, color))
+            ticker_lines_added += 1
             print(line)
 
+        click_ticker_counts.append(ticker_lines_added)
         cv2.imshow(WINDOW_NAME, draw_frame(dw, dh))
 
 # --- Init ---
@@ -335,7 +733,7 @@ cv2.imshow(WINDOW_NAME, draw_frame(init_w, init_h))
 cv2.setMouseCallback(WINDOW_NAME, mouse_callback)
 
 print(f"Showing: {image_path}  ({w}x{h})")
-print("Scroll: zoom  |  Right-drag: pan  |  R: reset zoom  |  Left-click: measure")
+print("Scroll: zoom  |  Right-drag: pan  |  R: reset zoom  |  Z: undo click  |  S: save undistorted  |  W: white balance  |  C: CLAHE  |  H: rectify  |  P: re-pick corners  |  Left-click: measure")
 
 prev_size = (init_w, init_h)
 while True:
@@ -343,6 +741,18 @@ while True:
     if key == ord('r'):          # reset zoom
         zoom_level, view_x, view_y = 1.0, 0.0, 0.0
         cv2.imshow(WINDOW_NAME, draw_frame(*get_display_size()))
+    elif key == ord('z'):        # undo last measurement click
+        undo_last_click()
+    elif key == ord('s'):        # save undistorted image
+        save_undistorted_image()
+    elif key == ord('w'):        # toggle gray-world white balance
+        toggle_white_balance()
+    elif key == ord('c'):        # toggle CLAHE local contrast on L channel
+        toggle_clahe()
+    elif key == ord('h'):        # rectify: pick corners if unset, else toggle
+        rectify_button_action()
+    elif key == ord('p'):        # re-pick the block corners (reset homography)
+        start_rectify_pick()
     elif key != -1:
         break
     curr_size = get_display_size()
