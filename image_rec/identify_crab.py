@@ -5,7 +5,7 @@ from ultralytics import YOLO
 
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-MODEL_PATH = os.path.join(BASE_DIR, "best_species.pt")
+MODEL_PATH = os.path.join(BASE_DIR, "crab_species_v1_yolo11.pt")
 
 CONFIDENCE_THRESHOLD = 0.35
 
@@ -41,7 +41,9 @@ def detect_and_identify_crabs(image_path, output_path="output.jpg"):
         raise FileNotFoundError("No test image found. Add test.jpg, test.jpeg, or test.png to image_rec.")
 
     if not os.path.exists(MODEL_PATH):
-        raise FileNotFoundError(f"Missing YOLO model: {MODEL_PATH}")
+        raise FileNotFoundError(
+            f"Missing YOLO model: {MODEL_PATH}. Run train_yolo.py first to train the v1 species model."
+        )
 
     img = cv2.imread(image_path)
     if img is None:
