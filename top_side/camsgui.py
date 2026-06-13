@@ -2,7 +2,8 @@
 import cv2
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QWidget, QLabel,
-    QGridLayout, QScrollArea, QSizePolicy,
+    QGridLayout, QScrollArea,
+      QSizePolicy,
     QPushButton, QMessageBox, QHBoxLayout
 )
 from PyQt5.QtGui import QPixmap, QImage, QFont, QPalette
