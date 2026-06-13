@@ -1,11 +1,87 @@
 #checkerboard img needs to be taken underwater and needs to be taken straight on
 import numpy as np
 import cv2 as cv
+import csv
 import glob
 import os
+import shutil
+from datetime import datetime
 
 # Change to the script's directory so relative paths work
-os.chdir(os.path.dirname(os.path.abspath(__file__)))
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+os.chdir(BASE_DIR)
+
+CALIBRATION_FILE = os.path.join(BASE_DIR, "camera_calibration_params.csv")
+CALIBRATION_ARCHIVE_DIR = os.path.join(BASE_DIR, "archived_calibrations")
+
+
+def archive_existing_calibration():
+    if not os.path.exists(CALIBRATION_FILE):
+        return None
+
+    os.makedirs(CALIBRATION_ARCHIVE_DIR, exist_ok=True)
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    archive_path = os.path.join(
+        CALIBRATION_ARCHIVE_DIR,
+        f"camera_calibration_params_{timestamp}.csv",
+    )
+
+    counter = 1
+    while os.path.exists(archive_path):
+        archive_path = os.path.join(
+            CALIBRATION_ARCHIVE_DIR,
+            f"camera_calibration_params_{timestamp}_{counter}.csv",
+        )
+        counter += 1
+
+    shutil.move(CALIBRATION_FILE, archive_path)
+    return archive_path
+
+
+def save_calibration_parameters(
+    camera_matrix,
+    distortion_coefficients,
+    rotation_vectors,
+    translation_vectors,
+    new_camera_matrix,
+    roi,
+    reprojection_error,
+):
+    archived_path = archive_existing_calibration()
+    if archived_path is not None:
+        print("Archived previous calibration settings:", archived_path)
+
+    rows = []
+    rows.extend(array_to_csv_rows("camera_matrix", camera_matrix))
+    rows.extend(array_to_csv_rows("distortion_coefficients", distortion_coefficients))
+    rows.extend(array_to_csv_rows("rotation_vectors", rotation_vectors))
+    rows.extend(array_to_csv_rows("translation_vectors", translation_vectors))
+    rows.extend(array_to_csv_rows("frame_size", frameSize))
+    rows.extend(array_to_csv_rows("chessboard_size", chessboardSize))
+    rows.extend(array_to_csv_rows("new_camera_matrix", new_camera_matrix))
+    rows.extend(array_to_csv_rows("roi", roi))
+    rows.extend(array_to_csv_rows("reprojection_error", reprojection_error))
+    rows.extend(array_to_csv_rows("saved_at", datetime.now().isoformat(timespec="seconds")))
+
+    with open(CALIBRATION_FILE, "w", newline="") as csv_file:
+        writer = csv.writer(csv_file)
+        writer.writerow(["parameter", "index_0", "index_1", "index_2", "value"])
+        writer.writerows(rows)
+
+    print("Saved calibration settings:", CALIBRATION_FILE)
+
+
+def array_to_csv_rows(parameter_name, value):
+    value_array = np.asarray(value)
+
+    if value_array.ndim == 0:
+        return [[parameter_name, "", "", "", value_array.item()]]
+
+    rows = []
+    for index in np.ndindex(value_array.shape):
+        padded_index = list(index) + [""] * (3 - len(index))
+        rows.append([parameter_name, padded_index[0], padded_index[1], padded_index[2], value_array[index]])
+    return rows
 
 ########### FIND CHESSBOARD CORNERS - objPoints AND imgPoints ############
 chessboardSize = (8,6)
@@ -67,6 +143,33 @@ print("\nDistortion Parameters:\n", dist)
 print("\nRotation Vectors:\n", rvecs)
 print("\nTranslation Vectors:\n", tvecs)
 
+# Reprojection Error
+mean_error = 0
+for i in range(len(objPoints)):
+    imgPoints2, _ = cv.projectPoints(objPoints[i], rvecs[i], tvecs[i], cameraMatrix, dist)
+    error = cv.norm(imgPoints[i], imgPoints2, cv.NORM_L2) / len(imgPoints2)
+    mean_error += error
+
+reprojection_error = mean_error / len(objPoints)
+print("Total reprojection error: ", reprojection_error)
+
+calibration_new_camera_matrix, calibration_roi = cv.getOptimalNewCameraMatrix(
+    cameraMatrix,
+    dist,
+    frameSize,
+    1,
+    frameSize,
+)
+save_calibration_parameters(
+    cameraMatrix,
+    dist,
+    rvecs,
+    tvecs,
+    calibration_new_camera_matrix,
+    calibration_roi,
+    reprojection_error,
+)
+
 
 ########UNDISTORTION##################
 
@@ -100,11 +203,3 @@ cv.imshow('Undistorted Result 2', dst)
 cv.waitKey(0)
 
 cv.destroyAllWindows()
-# Reprojection Error
-mean_error = 0
-for i in range(len(objPoints)):
-    imgPoints2, _ = cv.projectPoints(objPoints[i], rvecs[i], tvecs[i], cameraMatrix, dist)
-    error = cv.norm(imgPoints[i], imgPoints2, cv.NORM_L2) / len(imgPoints2)
-    mean_error += error
-
-print("Total reprojection error: ", mean_error / len(objPoints))
