@@ -8,6 +8,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 MODEL_PATH = os.path.join(BASE_DIR, "crab_species_v1_yolo11.pt")
 
 CONFIDENCE_THRESHOLD = 0.35
+DRAWN_CLASSES = {"green_crab"}
 
 CLASS_COLORS = {
     "green_crab": (0, 255, 0),
@@ -72,20 +73,21 @@ def detect_and_identify_crabs(image_path, output_path="output.jpg"):
 
         detections.append((x1, y1, w, h, confidence, class_name))
 
-        color = CLASS_COLORS.get(class_name, (255, 255, 255))
         label = f"{pretty_label(class_name)} ({confidence:.2f})"
-        cv2.rectangle(img, (x1, y1), (x2, y2), color, 2)
+        if class_name in DRAWN_CLASSES:
+            color = CLASS_COLORS.get(class_name, (255, 255, 255))
+            cv2.rectangle(img, (x1, y1), (x2, y2), color, 2)
 
-        text_y = y1 - 10 if y1 > 30 else y2 + 20
-        cv2.putText(
-            img,
-            label,
-            (x1, text_y),
-            cv2.FONT_HERSHEY_SIMPLEX,
-            0.7,
-            color,
-            2,
-        )
+            text_y = y1 - 10 if y1 > 30 else y2 + 20
+            cv2.putText(
+                img,
+                label,
+                (x1, text_y),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.7,
+                color,
+                2,
+            )
 
         print(f"  {label} at box ({x1}, {y1}, {w}x{h})")
 
