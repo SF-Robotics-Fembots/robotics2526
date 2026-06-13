@@ -37,7 +37,7 @@ def main(ip_server):
 	rot_comp = 0#was -0.08
 	slide_comp =0 #0.19
 
-	i2c = busio.I2C(board.SCL, board.SDA)
+	i2c = busio.I2C(board.SCL, board.SDA, frequency=50000)
 	#i2c.write_byte_data(0x40, 0x00, 0x10)
 	#time.sleep(0.01)
 	#i2c.write_byte_data(0x40, 0x00, 0x50)
