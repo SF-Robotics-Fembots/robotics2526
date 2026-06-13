@@ -176,18 +176,17 @@ def undistort_loaded_image():
         camera_matrix = calibration["camera_matrix"]
         distortion_coefficients = calibration["distortion_coefficients"]
 
-        new_camera_matrix, roi = cv2.getOptimalNewCameraMatrix(
+        # alpha=0 keeps the principal point centered and fills the frame. (alpha=1
+        # pushes the corrected principal point off the right edge with this
+        # calibration, squishing all content to one side.)
+        new_camera_matrix, _roi = cv2.getOptimalNewCameraMatrix(
             camera_matrix,
             distortion_coefficients,
             (w, h),
-            1,
+            0,
             (w, h),
         )
         undistorted = cv2.undistort(img, camera_matrix, distortion_coefficients, None, new_camera_matrix)
-
-        x, y, roi_w, roi_h = roi
-        if roi_w > 0 and roi_h > 0:
-            undistorted = undistorted[y:y + roi_h, x:x + roi_w]
 
         undistorted_img[0] = undistorted   # stash for manual save via the Save button
         reset_image_state(undistorted, f"undistorted_{filename}")
@@ -472,33 +471,54 @@ def clamp_view():
     view_y = max(0.0, min(view_y, h - h / zoom_level))
 
 def get_crop_bounds():
-    # the exact source-image region that draw_frame crops and resizes to fill
-    # the display. All display<->original mapping uses this so clicks line up.
+    # the source-image region currently visible (depends on zoom / pan).
     x1 = max(0, int(view_x))
     y1 = max(0, int(view_y))
     x2 = min(w, int(view_x + w / zoom_level) + 1)
     y2 = min(h, int(view_y + h / zoom_level) + 1)
     return x1, y1, x2, y2
 
-def display_to_orig(dx, dy, dw, dh):
-    # invert the exact crop+resize draw_frame uses; keep sub-pixel precision so
-    # the stored point matches the click, rounding only happens when drawing back
+def get_view_layout(dw, dh):
+    # Fit the visible crop into the display preserving aspect ratio (letterbox).
+    # Returns the crop bounds plus the uniform scale f and the black-bar offset
+    # (off_x, off_y). All display<->original mapping uses this so clicks line up.
     x1, y1, x2, y2 = get_crop_bounds()
+    crop_w = max(1, x2 - x1)
+    crop_h = max(1, y2 - y1)
+    f = min(dw / crop_w, dh / crop_h)
+    content_w = crop_w * f
+    content_h = crop_h * f
+    off_x = (dw - content_w) / 2.0
+    off_y = (dh - content_h) / 2.0
+    return x1, y1, x2, y2, f, off_x, off_y
+
+def display_to_orig(dx, dy, dw, dh):
+    # invert the letterboxed fit; keep sub-pixel precision so the stored point
+    # matches the click, rounding only happens when drawing back
+    x1, y1, _x2, _y2, f, off_x, off_y = get_view_layout(dw, dh)
     return (
-        x1 + dx * (x2 - x1) / dw,
-        y1 + dy * (y2 - y1) / dh,
+        x1 + (dx - off_x) / f,
+        y1 + (dy - off_y) / f,
     )
 
 def orig_to_display(ox, oy, dw, dh):
-    x1, y1, x2, y2 = get_crop_bounds()
+    x1, y1, _x2, _y2, f, off_x, off_y = get_view_layout(dw, dh)
     return (
-        round((ox - x1) * dw / (x2 - x1)),
-        round((oy - y1) * dh / (y2 - y1)),
+        round((ox - x1) * f + off_x),
+        round((oy - y1) * f + off_y),
     )
 
 def draw_frame(dw, dh):
-    x1, y1, x2, y2 = get_crop_bounds()
-    out = cv2.resize(img[y1:y2, x1:x2], (dw, dh), interpolation=cv2.INTER_LINEAR)
+    x1, y1, x2, y2, f, off_x, off_y = get_view_layout(dw, dh)
+    content_w = max(1, int(round((x2 - x1) * f)))
+    content_h = max(1, int(round((y2 - y1) * f)))
+    resized = cv2.resize(img[y1:y2, x1:x2], (content_w, content_h), interpolation=cv2.INTER_LINEAR)
+
+    # paste the fitted image onto a black canvas (the letterbox bars)
+    out = np.zeros((dh, dw, 3), dtype=np.uint8)
+    oxi = max(0, int(round(off_x)))
+    oyi = max(0, int(round(off_y)))
+    out[oyi:oyi + content_h, oxi:oxi + content_w] = resized[:dh - oyi, :dw - oxi]
 
     # --- Click dots ---
     for idx, (ox, oy) in enumerate(clicks):
@@ -619,11 +639,13 @@ def mouse_callback(event, x, y, flags, _param):
 
     # --- Scroll wheel: zoom centered on cursor ---
     if event == cv2.EVENT_MOUSEWHEEL:
-        old_zoom = zoom_level
+        # keep the source point under the cursor fixed across the zoom
+        src_before = display_to_orig(x, y, dw, dh)
         zoom_level = min(zoom_level * ZOOM_STEP, ZOOM_MAX) if flags > 0 \
                      else max(zoom_level / ZOOM_STEP, ZOOM_MIN)
-        view_x += x * (w / dw) * (1/old_zoom - 1/zoom_level)
-        view_y += y * (h / dh) * (1/old_zoom - 1/zoom_level)
+        src_after = display_to_orig(x, y, dw, dh)
+        view_x += src_before[0] - src_after[0]
+        view_y += src_before[1] - src_after[1]
         clamp_view()
         cv2.imshow(WINDOW_NAME, draw_frame(dw, dh))
 
@@ -634,8 +656,9 @@ def mouse_callback(event, x, y, flags, _param):
 
     elif event == cv2.EVENT_MOUSEMOVE and (flags & cv2.EVENT_FLAG_RBUTTON):
         if pan_start[0]:
-            view_x = pan_view_start[0][0] - (x - pan_start[0][0]) * (w / zoom_level) / dw
-            view_y = pan_view_start[0][1] - (y - pan_start[0][1]) * (h / zoom_level) / dh
+            _x1, _y1, _x2, _y2, f, _ox, _oy = get_view_layout(dw, dh)
+            view_x = pan_view_start[0][0] - (x - pan_start[0][0]) / f
+            view_y = pan_view_start[0][1] - (y - pan_start[0][1]) / f
             clamp_view()
             cv2.imshow(WINDOW_NAME, draw_frame(dw, dh))
 

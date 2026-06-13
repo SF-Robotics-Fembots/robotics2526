@@ -3,14 +3,73 @@ import cv2
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QWidget, QLabel,
     QGridLayout, QScrollArea, QSizePolicy,
-    QPushButton, QMessageBox, QHBoxLayout
+    QPushButton, QHBoxLayout
 )
 from PyQt5.QtGui import QPixmap, QImage, QFont, QPalette
 from PyQt5.QtCore import QThread, pyqtSignal, Qt, QTimer
 import sys
 import time
 import os
+import json
+import datetime
+import queue
 import numpy as np
+
+# Target display rate per camera. We always read frames to stay at the live
+# edge, but only process/emit this often so the Qt queue can't back up.
+DISPLAY_FPS = 20
+
+# Base folders for screenshots (D: preferred, home folder as fallback). Each run
+# gets its own dated subfolder under one of these.
+PREFERRED_SHOT_DIR = r"D:\camsgui_screenshots"
+FALLBACK_SHOT_DIR = os.path.join(os.path.expanduser("~"), "camsgui_screenshots")
+
+# Persisted settings, saved next to this script.
+ROTATION_CONFIG_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "camera_rotations.json")
+SCREENSHOT_CAMERA_CONFIG_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "screenshot_default_camera.json")
+
+
+def _newfoundland_is_dst(utc_dt):
+    # Newfoundland DST: 2nd Sunday of March 02:00 local -> 1st Sunday of Nov 02:00 local.
+    year = utc_dt.year
+
+    def nth_sunday(month, n):
+        first = datetime.date(year, month, 1)
+        first_sunday = 1 + (6 - first.weekday()) % 7   # weekday(): Mon=0..Sun=6
+        return first_sunday + (n - 1) * 7
+
+    start_local = datetime.datetime(year, 3, nth_sunday(3, 2), 2, 0)    # clocks on NST (UTC-3:30)
+    end_local   = datetime.datetime(year, 11, nth_sunday(11, 1), 2, 0)  # clocks on NDT (UTC-2:30)
+    start_utc = start_local + datetime.timedelta(hours=3, minutes=30)
+    end_utc   = end_local + datetime.timedelta(hours=2, minutes=30)
+    naive_utc = utc_dt.replace(tzinfo=None)
+    return start_utc <= naive_utc < end_utc
+
+
+def stjohns_now():
+    # Current time in St. John's, Newfoundland. Uses the tz database if present
+    # (e.g. `pip install tzdata`), otherwise computes the NL offset directly.
+    utc_now = datetime.datetime.now(datetime.timezone.utc)
+    try:
+        from zoneinfo import ZoneInfo
+        return utc_now.astimezone(ZoneInfo("America/St_Johns"))
+    except Exception:
+        offset = datetime.timedelta(hours=-2, minutes=-30) if _newfoundland_is_dst(utc_now) \
+            else datetime.timedelta(hours=-3, minutes=-30)
+        return (utc_now + offset).replace(tzinfo=None)
+
+
+def create_session_dir():
+    # Make a dated subfolder for this run; returns (path, used_fallback).
+    session_name = stjohns_now().strftime("%Y-%m-%d_%H-%M-%S")
+    for base in (PREFERRED_SHOT_DIR, FALLBACK_SHOT_DIR):
+        try:
+            session_dir = os.path.join(base, session_name)
+            os.makedirs(session_dir, exist_ok=True)
+            return session_dir, (base != PREFERRED_SHOT_DIR)
+        except OSError as e:
+            print(f"Could not use {base}: {e}")
+    return None, False
 
 
 # --- Camera capture thread ---
@@ -26,35 +85,58 @@ class CaptureCam(QThread):
         self.last_qt_image = None
         self.rotation = rotation
 
-    def run(self):
+    ROTATION_MAP = {
+        90: cv2.ROTATE_90_CLOCKWISE,
+        180: cv2.ROTATE_180,
+        270: cv2.ROTATE_90_COUNTERCLOCKWISE,
+    }
+
+    def open_capture(self):
         capture = cv2.VideoCapture(self.url)
         capture.set(cv2.CAP_PROP_OPEN_TIMEOUT_MSEC, 10000)
         capture.set(cv2.CAP_PROP_READ_TIMEOUT_MSEC, 10000)
+        # keep the internal buffer tiny so latency can't accumulate over time
+        try:
+            capture.set(cv2.CAP_PROP_BUFFERSIZE, 1)
+        except Exception:
+            pass
+        return capture
 
-        if capture is None or not capture.isOpened():
-            placeholder = self.create_placeholder()
-            qt_img = self.cv_to_qt(placeholder)
-            while self.threadActive:
-                self.ImageUpdate.emit(qt_img)
-                time.sleep(0.5)
-            return
+    def run(self):
+        capture = self.open_capture()
+
+        min_period = 1.0 / DISPLAY_FPS
+        last_process = 0.0
+        consecutive_failures = 0
 
         while self.threadActive:
-            ret, frame = capture.read()
+            ret, frame = capture.read() if capture is not None else (False, None)
+
             if not ret:
+                consecutive_failures += 1
+                # a stream that has gone bad over time: drop it and reconnect fresh
+                if consecutive_failures >= 20:
+                    if capture is not None:
+                        capture.release()
+                    capture = self.open_capture()
+                    consecutive_failures = 0
                 placeholder = self.create_placeholder()
-                qt_img = self.cv_to_qt(placeholder)
-                self.ImageUpdate.emit(qt_img)
+                self.ImageUpdate.emit(self.cv_to_qt(placeholder))
                 time.sleep(0.5)
                 continue
 
-            rotation_map = {
-                90: cv2.ROTATE_90_CLOCKWISE,
-                180: cv2.ROTATE_180,
-                270: cv2.ROTATE_90_COUNTERCLOCKWISE,
-            }
-            if self.rotation in rotation_map:
-                frame = cv2.rotate(frame, rotation_map[self.rotation])
+            consecutive_failures = 0
+
+            # We just consumed a frame (draining any backlog so we stay live).
+            # Only do the heavy convert/emit at the target rate so the GUI's
+            # cross-thread queue can't grow without bound.
+            now = time.monotonic()
+            if now - last_process < min_period:
+                continue
+            last_process = now
+
+            if self.rotation in self.ROTATION_MAP:
+                frame = cv2.rotate(frame, self.ROTATION_MAP[self.rotation])
 
             cv_rgb_image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             height, width, channels = cv_rgb_image.shape
@@ -67,9 +149,8 @@ class CaptureCam(QThread):
             qt_rgb_image_scaled = qt_rgb_image.scaled(520, 480, Qt.KeepAspectRatio)
             self.ImageUpdate.emit(qt_rgb_image_scaled)
 
-            time.sleep(0.01)
-
-        capture.release()
+        if capture is not None:
+            capture.release()
         self.quit()
 
     def cv_to_qt(self, frame):
@@ -100,13 +181,56 @@ class CaptureCam(QThread):
         self.threadActive = False
 
 
+# --- Background screenshot writer ---
+class ScreenshotWriter(QThread):
+    # success, filename, used_fallback_folder  (emitted per completed write)
+    finished_signal = pyqtSignal(bool, str, bool)
+
+    def __init__(self):
+        super().__init__()
+        # Writes are serialized through this queue. USB flash drives are very
+        # slow under concurrent writes, so we save one image at a time.
+        self.queue = queue.Queue()
+
+    def submit(self, frame_rgb, filename, used_fallback):
+        self.queue.put((frame_rgb, filename, used_fallback))
+
+    def run(self):
+        while True:
+            item = self.queue.get()   # blocks until a job (or the stop sentinel)
+            if item is None:
+                break
+            frame_rgb, filename, used_fallback = item
+            try:
+                frame = frame_rgb
+                h, w, _ = frame.shape
+                if w < 3840 or h < 2160:
+                    frame = cv2.resize(frame, (3840, 2160), interpolation=cv2.INTER_CUBIC)
+                ok = cv2.imwrite(filename, cv2.cvtColor(frame, cv2.COLOR_RGB2BGR))
+            except cv2.error as e:
+                print(f"cv2.imwrite error: {e}")
+                ok = False
+            if ok:
+                print(f"Saved screenshot to {filename}")
+            self.finished_signal.emit(ok, filename, used_fallback)
+
+    def stop(self):
+        # queued writes still ahead of the sentinel finish first
+        self.queue.put(None)
+
+
 # --- Screenshot window ---
 class ScreenshotWindow(QMainWindow):
-    def __init__(self, camera_threads):
+    def __init__(self, camera_threads, start_index=1, on_camera_change=None,
+                 session_dir=None, used_fallback=False):
         super().__init__()
 
         self.camera_threads = camera_threads
-        self.current_index = 1
+        # start on the last-used camera (clamped to a valid index)
+        self.current_index = start_index if 0 <= start_index < len(camera_threads) else 0
+        self.on_camera_change = on_camera_change
+        self.session_dir = session_dir          # dated subfolder for this run
+        self.session_used_fallback = used_fallback
         self.current_frame_cv = None
         self.last_qt_image = None
 
@@ -117,7 +241,47 @@ class ScreenshotWindow(QMainWindow):
         self.label.setAlignment(Qt.AlignCenter)
         self.setCentralWidget(self.label)
 
+        # Screenshots are deferred to the next freshly delivered frame so a
+        # rapid press never grabs a half-decoded (partially black) frame.
+        self.pending_screenshots = 0
+        self.screenshot_wait = 0       # frames waited for the current request
+
+        # Single writer thread serializes disk writes (fast on USB keys).
+        self.writer = ScreenshotWriter()
+        self.writer.finished_signal.connect(self.on_screenshot_saved)
+        self.writer.start()
+
+        self.toast = QLabel("", self)
+        self.toast.setAlignment(Qt.AlignCenter)
+        self.toast.hide()
+        self.toast_timer = QTimer(self)
+        self.toast_timer.setSingleShot(True)
+        self.toast_timer.timeout.connect(self.toast.hide)
+
         self.connect_camera(self.current_index)
+
+    def show_toast(self, text, color="#2e7d32", duration_ms=2000):
+        self.toast.setText(text)
+        self.toast.setStyleSheet(
+            f"background: {color}; color: white; padding: 12px 20px;"
+            "border-radius: 8px; font-weight: bold; font-size: 16px;"
+        )
+        self.toast.adjustSize()
+        self.toast.move(
+            (self.width() - self.toast.width()) // 2,
+            self.height() - self.toast.height() - 50,
+        )
+        self.toast.show()
+        self.toast.raise_()
+        self.toast_timer.start(duration_ms)
+
+    def on_screenshot_saved(self, ok, filename, used_fallback):
+        if not ok:
+            self.show_toast("Screenshot failed to save", "#c62828")
+        elif used_fallback:
+            self.show_toast(f"Saved locally (D: unavailable): {os.path.basename(filename)}", "#ef6c00", 3500)
+        else:
+            self.show_toast(f"Saved {os.path.basename(filename)}", "#2e7d32")
 
     def connect_camera(self, index):
         for cam in self.camera_threads:
@@ -131,8 +295,60 @@ class ScreenshotWindow(QMainWindow):
         cam.ImageUpdate.connect(self.update_image)
         cam.RawFrameUpdate.connect(self.store_raw_frame)
 
+        # cancel any queued screenshot so it can't save from the new camera
+        self.pending_screenshots = 0
+        self.screenshot_wait = 0
+
+        # remember this as the new default for next time
+        if self.on_camera_change is not None:
+            self.on_camera_change(index)
+
     def store_raw_frame(self, frame):
         self.current_frame_cv = frame
+
+        # Service a queued screenshot using this fresh, complete frame. Skip a
+        # frame that looks truncated, but give up waiting after a few tries so a
+        # request is never silently dropped.
+        if self.pending_screenshots > 0:
+            self.screenshot_wait += 1
+            if (not self.is_truncated_frame(frame)) or self.screenshot_wait >= 5:
+                self.pending_screenshots -= 1
+                self.screenshot_wait = 0
+                self.save_frame(frame.copy())
+
+    @staticmethod
+    def is_truncated_frame(frame):
+        # A dropped/partial MJPEG frame ends in a block of identical (usually
+        # black) rows. Flag it if the whole bottom 10% is one flat color.
+        h = frame.shape[0]
+        band = max(1, h // 10)
+        return bool(np.all(frame[h - band:] == frame[-1, -1]))
+
+    def save_frame(self, frame):
+        save_path = self.session_dir
+        used_fallback = self.session_used_fallback
+
+        # session dir is created at startup; recreate defensively in case it was
+        # removed, or fall back if it was never available
+        if not save_path:
+            save_path, used_fallback = create_session_dir()
+            self.session_dir, self.session_used_fallback = save_path, used_fallback
+        if save_path is None:
+            self.show_toast("Screenshot failed: no writable folder", "#c62828", 3500)
+            return
+        try:
+            os.makedirs(save_path, exist_ok=True)
+        except OSError as e:
+            self.show_toast("Screenshot failed: folder error", "#c62828", 3500)
+            print(f"Could not create {save_path}: {e}")
+            return
+
+        # millisecond-resolution stamp so rapid shots never collide / overwrite
+        timestamp = time.strftime("%Y%m%d_%H%M%S") + f"_{int((time.time() % 1) * 1000):03d}"
+        filename = os.path.join(save_path, f"cam_{self.current_index+1}_{timestamp}.png")
+
+        # queue the resize + write; the writer thread saves them one at a time
+        self.writer.submit(frame, filename, used_fallback)
 
     def update_image(self, qt_image):
         self.last_qt_image = qt_image
@@ -157,73 +373,23 @@ class ScreenshotWindow(QMainWindow):
 
         elif event.key() == Qt.Key_P:
             if self.current_frame_cv is None:
+                self.show_toast("No frame yet", "#c62828", 1500)
                 return
 
-            preferred_path = r"D:\camsgui_screenshots"
-            fallback_path = os.path.join(os.path.expanduser("~"), "camsgui_screenshots")
-
-            save_path = None
-            preferred_error = None
-            for candidate in (preferred_path, fallback_path):
-                try:
-                    os.makedirs(candidate, exist_ok=True)
-                    save_path = candidate
-                    break
-                except OSError as e:
-                    print(f"Could not use {candidate}: {e}")
-                    if candidate == preferred_path:
-                        preferred_error = e
-
-            if save_path is None:
-                msg = QMessageBox()
-                msg.setIcon(QMessageBox.Warning)
-                msg.setWindowTitle("Screenshot failed")
-                msg.setText("Could not create a screenshot folder.")
-                msg.exec_()
-                return
-
-            timestamp = time.strftime("%Y%m%d_%H%M%S")
-            filename = os.path.join(save_path, f"cam_{self.current_index+1}_{timestamp}.png")
-
-            frame = self.current_frame_cv
-            h, w, _ = frame.shape
-
-            if w < 3840 or h < 2160:
-                frame = cv2.resize(frame, (3840, 2160), interpolation=cv2.INTER_CUBIC)
-
-            try:
-                ok = cv2.imwrite(filename, cv2.cvtColor(frame, cv2.COLOR_RGB2BGR))
-            except cv2.error as e:
-                ok = False
-                print(f"cv2.imwrite error: {e}")
-
-            if not ok:
-                msg = QMessageBox()
-                msg.setIcon(QMessageBox.Warning)
-                msg.setWindowTitle("Screenshot failed")
-                msg.setText(f"Could not write screenshot to:\n{filename}")
-                msg.exec_()
-                return
-
-            print(f"Saved screenshot to {filename}")
-
-            msg = QMessageBox()
-            if save_path != preferred_path:
-                msg.setIcon(QMessageBox.Warning)
-                msg.setWindowTitle("Saved locally (D: unavailable)")
-                msg.setText(
-                    f"Could not save to {preferred_path}:\n{preferred_error}\n\n"
-                    f"Saved locally instead:\n{filename}"
-                )
-            else:
-                msg.setWindowTitle("Saved!")
-                msg.setText(f"Screenshot saved:\n{filename}")
-            msg.exec_()
+            # queue the request; it's saved from the next fresh, complete frame
+            self.pending_screenshots += 1
+            self.show_toast("Saving screenshot…", "#1565c0", 1500)
 
     def resizeEvent(self, event):
         if self.last_qt_image is not None:
             self.update_image(self.last_qt_image)
         super().resizeEvent(event)
+
+    def closeEvent(self, event):
+        # let queued screenshots finish writing, then stop the writer thread
+        self.writer.stop()
+        self.writer.wait(5000)
+        super().closeEvent(event)
 
 
 # --- Main GUI ---
@@ -265,8 +431,18 @@ class MainWindow(QMainWindow):
             "tools cam ❀"
         ]
 
-        # Initial rotation per camera (matches previous hardcoded behavior for 8080 and 8084)
-        self.rotation_states = [180, 0, 180, 0, 0, 0]
+        # Per-camera rotation, loaded from disk (falls back to defaults below)
+        self.rotation_states = self.load_rotation_states()
+
+        # Default camera for the screenshot window, remembered across sessions
+        self.screenshot_default_index = self.load_screenshot_default_index()
+
+        # One dated subfolder for this whole run (St. John's, NL time)
+        self.session_dir, self.session_used_fallback = create_session_dir()
+        if self.session_dir:
+            print(f"Screenshots this session: {self.session_dir}")
+        else:
+            print("WARNING: could not create a screenshot folder for this session")
 
         rotate_btn_style = """
             QPushButton {
@@ -437,15 +613,61 @@ class MainWindow(QMainWindow):
             text = f"{m:02d}:{s:02d}.{tenths}"
         self.stopwatch_display.setText(text)
 
+    def load_rotation_states(self):
+        # Default rotations (matches previous hardcoded behavior for 8080 and 8084)
+        defaults = [180, 0, 180, 0, 0, 0]
+        try:
+            with open(ROTATION_CONFIG_PATH, "r") as f:
+                saved = json.load(f)
+            # only accept a list of 6 valid rotations; otherwise fall back
+            if isinstance(saved, list) and len(saved) == 6:
+                return [r if r in (0, 90, 180, 270) else defaults[i]
+                        for i, r in enumerate(saved)]
+        except (FileNotFoundError, json.JSONDecodeError, ValueError):
+            pass
+        return defaults
+
+    def save_rotation_states(self):
+        try:
+            with open(ROTATION_CONFIG_PATH, "w") as f:
+                json.dump(self.rotation_states, f)
+        except OSError as e:
+            print(f"Could not save camera rotations: {e}")
+
     def rotate_camera(self, index):
         new_rotation = (self.rotation_states[index] + 90) % 360
         self.rotation_states[index] = new_rotation
         self.cam_threads[index].rotation = new_rotation
         self.rotate_buttons[index].setText(f"⟳ {new_rotation}°")
+        self.save_rotation_states()
 
     def open_screenshot_window(self):
-        self.screenshot_window = ScreenshotWindow(self.cam_threads)
+        self.screenshot_window = ScreenshotWindow(
+            self.cam_threads,
+            start_index=self.screenshot_default_index,
+            on_camera_change=self.set_screenshot_default_index,
+            session_dir=self.session_dir,
+            used_fallback=self.session_used_fallback,
+        )
         self.screenshot_window.show()
+
+    def load_screenshot_default_index(self):
+        try:
+            with open(SCREENSHOT_CAMERA_CONFIG_PATH, "r") as f:
+                index = json.load(f)
+            if isinstance(index, int) and 0 <= index < 6:
+                return index
+        except (FileNotFoundError, json.JSONDecodeError, ValueError):
+            pass
+        return 1   # previous hardcoded default
+
+    def set_screenshot_default_index(self, index):
+        self.screenshot_default_index = index
+        try:
+            with open(SCREENSHOT_CAMERA_CONFIG_PATH, "w") as f:
+                json.dump(index, f)
+        except OSError as e:
+            print(f"Could not save screenshot default camera: {e}")
 
     def __SetupUI(self):
         grid_layout = QGridLayout()
