@@ -9,11 +9,11 @@ from ultralytics import YOLO
 BASE_DIR = Path(__file__).resolve().parent
 IMAGE_REC_DIR = BASE_DIR / "image_rec"
 
-DATASET_ZIP = IMAGE_REC_DIR / "Crab Detection Species.v2i.yolov11.zip"
-DATASET_DIR = IMAGE_REC_DIR / "Crab Detection Species.v2i.yolov11"
+DATASET_ZIP = IMAGE_REC_DIR / "Crab Detection Species.v3i.yolov11.zip"
+DATASET_DIR = IMAGE_REC_DIR / "Crab Detection Species.v3i.yolov11"
 DATA_YAML = DATASET_DIR / "data.yaml"
 STARTING_MODEL = "yolo11n.pt"
-TRAINED_MODEL_PATH = IMAGE_REC_DIR / "crab_detection_species_v2_yolo11.pt"
+TRAINED_MODEL_PATH = IMAGE_REC_DIR / "crab_detection_species_v3_yolo11.pt"
 
 
 def unzip_dataset_if_needed():
@@ -43,7 +43,7 @@ def train():
         epochs=100,
         imgsz=640,
         project=str(BASE_DIR / "runs" / "detect"),
-        name="crab_detection_species_v2_yolo11",
+        name="crab_detection_species_v3_yolo11",
     )
 
     best_weights = Path(results.save_dir) / "weights" / "best.pt"
@@ -55,7 +55,7 @@ def train():
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Unzip and train YOLO on the v2 crab detection species dataset.")
+    parser = argparse.ArgumentParser(description="Unzip and train YOLO on the v3 crab detection species dataset.")
     parser.add_argument(
         "--unzip-only",
         action="store_true",
