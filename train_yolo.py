@@ -1,5 +1,6 @@
 from pathlib import Path
 from shutil import copy2
+from tempfile import gettempdir
 from zipfile import ZipFile
 import argparse
 
@@ -10,7 +11,7 @@ BASE_DIR = Path(__file__).resolve().parent
 IMAGE_REC_DIR = BASE_DIR / "image_rec"
 
 DATASET_ZIP = IMAGE_REC_DIR / "Crab Detection Species.v3i.yolov11.zip"
-DATASET_DIR = IMAGE_REC_DIR / "Crab Detection Species.v3i.yolov11"
+DATASET_DIR = Path(gettempdir()) / "robotics2526_yolo_datasets" / "Crab Detection Species.v3i.yolov11"
 DATA_YAML = DATASET_DIR / "data.yaml"
 STARTING_MODEL = "yolo11n.pt"
 TRAINED_MODEL_PATH = IMAGE_REC_DIR / "crab_detection_species_v3_yolo11.pt"

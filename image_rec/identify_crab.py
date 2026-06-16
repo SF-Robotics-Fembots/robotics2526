@@ -5,7 +5,7 @@ from ultralytics import YOLO
 
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-MODEL_PATH = os.path.join(BASE_DIR, "crab_species_v1_yolo11.pt")
+MODEL_PATH = os.path.join(BASE_DIR, "crab_detection_species_v3_yolo11.pt")
 
 CONFIDENCE_THRESHOLD = 0.35
 DRAWN_CLASSES = {"green_crab"}
@@ -22,12 +22,28 @@ def pretty_label(class_name):
 
 
 def find_test_image():
-    return next(
+    image_extensions = (".jpg", ".jpeg", ".png")
+    test_image = next(
         (
             os.path.join(BASE_DIR, filename)
             for filename in os.listdir(BASE_DIR)
             if filename.lower().startswith("test.")
-            and filename.lower().endswith((".jpg", ".jpeg", ".png"))
+            and filename.lower().endswith(image_extensions)
+        ),
+        None,
+    )
+    if test_image is not None:
+        return test_image
+
+    test_crabs_dir = os.path.join(BASE_DIR, "test_crabs")
+    if not os.path.isdir(test_crabs_dir):
+        return None
+
+    return next(
+        (
+            os.path.join(test_crabs_dir, filename)
+            for filename in os.listdir(test_crabs_dir)
+            if filename.lower().endswith(image_extensions)
         ),
         None,
     )
@@ -39,11 +55,11 @@ def detect_and_identify_crabs(image_path, output_path="output.jpg"):
     and return detections as (x, y, w, h, confidence, class_name) tuples.
     """
     if image_path is None:
-        raise FileNotFoundError("No test image found. Add test.jpg, test.jpeg, or test.png to image_rec.")
+        raise FileNotFoundError("No test image found. Add test.jpg/test.jpeg/test.png to image_rec or an image to image_rec/test_crabs.")
 
     if not os.path.exists(MODEL_PATH):
         raise FileNotFoundError(
-            f"Missing YOLO model: {MODEL_PATH}. Run train_yolo.py first to train the v1 species model."
+            f"Missing YOLO model: {MODEL_PATH}. Run train_yolo.py first to train the v3 species model."
         )
 
     img = cv2.imread(image_path)

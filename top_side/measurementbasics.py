@@ -767,7 +767,7 @@ while True:
         rectify_button_action()
     elif key == ord('p'):        # re-pick the block corners (reset homography)
         start_rectify_pick()
-    elif key != -1:
+    elif key in (27, ord('q')): # Esc or Q exits
         break
     curr_size = get_display_size()
     if curr_size != prev_size:
