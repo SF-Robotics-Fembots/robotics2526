@@ -1,5 +1,6 @@
 #!/bin/bash
-
+bash cameraoff.sh
+sleep 2
 bash cameraon.sh	
 
 #ok lets see if this fixes the error!
@@ -11,7 +12,7 @@ sudo fuser -k /dev/video6
 sudo fuser -k /dev/video8
 sudo fuser -k /dev/video10
 
-# Kill any processes using camera stream ports
+# Kill any processes using camera stream ports 
 sudo fuser -k 8080/tcp
 sudo fuser -k 8082/tcp
 sudo fuser -k 8084/tcp
