@@ -14,7 +14,7 @@ CALIBRATION_CSV = os.path.join(BASE_DIR, "camera_calibration", "camera_calibrati
 root = tk.Tk()
 root.withdraw()
 image_path = filedialog.askopenfilename(
-    title="Select an Image",
+    title="Select the First Photo",
     filetypes=[("Image files", "*.jpg *.jpeg *.png *.bmp *.tiff")]
 )
 
@@ -32,7 +32,7 @@ filename = image_path.split("/")[-1].split("\\")[-1]
 mtime = os.path.getmtime(image_path)
 file_datetime = datetime.datetime.fromtimestamp(mtime).strftime("%Y-%m-%d  %H:%M:%S")
 
-KNOWN_DISTANCE_MM = 125.0
+FIRST_REFERENCE_MM = 21.336
 ZOOM_STEP      = 1.2
 ZOOM_MIN       = 1.0
 ZOOM_MAX       = 20.0
@@ -71,6 +71,8 @@ clicks         = []
 ticker         = []
 click_ticker_counts = []   # parallel to clicks: ticker lines each click appended (for undo)
 pixels_per_mm = [None]
+photo_number = [1]
+second_photo_reference_mm = [None]
 undistort_button_rect = [None]
 undo_button_rect = [None]
 save_button_rect = [None]
@@ -136,11 +138,14 @@ def read_calibration_csv(csv_path):
     return calibration
 
 def reset_image_state(new_img, new_filename=None):
-    global img, h, w, filename, zoom_level, view_x, view_y
+    global img, h, w, filename, file_datetime, zoom_level, view_x, view_y
     img = new_img
     h, w = img.shape[:2]
     if new_filename is not None:
         filename = new_filename
+    if image_path and os.path.exists(image_path):
+        mtime = os.path.getmtime(image_path)
+        file_datetime = datetime.datetime.fromtimestamp(mtime).strftime("%Y-%m-%d  %H:%M:%S")
 
     clicks.clear()
     ticker.clear()
@@ -155,6 +160,44 @@ def reset_image_state(new_img, new_filename=None):
     wb_enabled[0] = False
     clahe_enabled[0] = False
 
+def load_second_photo():
+    global image_path
+    if second_photo_reference_mm[0] is None:
+        messagebox.showinfo(
+            "Second Photo",
+            "Measure the reference object in the first photo before loading the second photo.",
+        )
+        return
+
+    next_path = filedialog.askopenfilename(
+        title=f"Select the Second Photo (reference: {second_photo_reference_mm[0]:.3f} mm)",
+        filetypes=[("Image files", "*.jpg *.jpeg *.png *.bmp *.tiff")],
+    )
+    if not next_path:
+        ticker.append(("Second photo not selected; press N to try again", (0, 200, 255)))
+        cv2.imshow(WINDOW_NAME, draw_frame(*get_display_size()))
+        return
+
+    next_img = cv2.imread(next_path)
+    if next_img is None:
+        messagebox.showerror("Second Photo", f"Could not load {next_path}")
+        return
+
+    image_path = next_path
+    photo_number[0] = 2
+    has_undistorted[0] = False
+    undistorted_img[0] = None
+    rectify_enabled[0] = False
+    rectify_pick_mode[0] = False
+    rectify_corners.clear()
+    rectify_H[0] = None
+    rectify_size[0] = None
+    rectify_scale[0] = None
+    reset_image_state(next_img, os.path.basename(next_path))
+    ticker.append((f"Photo 2 reference: {second_photo_reference_mm[0]:.3f} mm", (0, 255, 255)))
+    cv2.imshow(WINDOW_NAME, draw_frame(*get_display_size()))
+    print(f"Showing second photo: {image_path}  ({w}x{h})")
+
 def undo_last_click():
     if not clicks:
         return
@@ -166,6 +209,8 @@ def undo_last_click():
     # calibration (yellow pair) is only valid once its 2 points exist
     if len(clicks) < 2:
         pixels_per_mm[0] = None
+    if photo_number[0] == 1 and len(clicks) < 4:
+        second_photo_reference_mm[0] = None
     cv2.imshow(WINDOW_NAME, draw_frame(*get_display_size()))
 
 def undistort_loaded_image():
@@ -617,7 +662,7 @@ def draw_frame(dw, dh):
     cv2.putText(out, rect_label, (rx1 + padding * 2, ry2 - padding * 2), font, button_scale, (255, 255, 255), thickness, line_type)
 
     # --- Lower-right info label ---
-    info_lines = [filename, f"{w} x {h}", file_datetime, f"Zoom {zoom_level:.1f}x"]
+    info_lines = [f"Photo {photo_number[0]}/2", filename, f"{w} x {h}", file_datetime, f"Zoom {zoom_level:.1f}x"]
     text_sizes = [cv2.getTextSize(line, font, small_scale, thickness)[0] for line in info_lines]
     panel_height = (max(size[1] for size in text_sizes) + padding) * len(info_lines) + padding
     draw_text_panel(out, info_lines, (dw - padding * 2, dh - padding * 2), align="right", vertical_align="bottom")
@@ -726,8 +771,8 @@ def mouse_callback(event, x, y, flags, _param):
         pt_in_pair = idx % 2 + 1
         color      = pair_color(idx)
 
-        # when rectified, scale is known from the block, so every pair measures;
-        # otherwise the first pair calibrates against the yellow reference
+        # When rectified, scale is known from the block. Otherwise, the first
+        # pair calibrates against this photo's reference distance.
         auto_scaled = rectify_enabled[0] and pixels_per_mm[0]
 
         clicks.append((orig_x, orig_y))
@@ -737,11 +782,19 @@ def mouse_callback(event, x, y, flags, _param):
         if pt_in_pair == 2:
             dist_px = px_distance(clicks[-2], clicks[-1])
             if pair == 0 and not auto_scaled:
-                pixels_per_mm[0] = dist_px / KNOWN_DISTANCE_MM
-                line = f"  {dist_px:.1f}px = {KNOWN_DISTANCE_MM:.1f}mm  ->  {pixels_per_mm[0]:.2f}px/mm"
+                reference_mm = (
+                    FIRST_REFERENCE_MM
+                    if photo_number[0] == 1
+                    else second_photo_reference_mm[0]
+                )
+                pixels_per_mm[0] = dist_px / reference_mm
+                line = f"  {dist_px:.1f}px = {reference_mm:.3f}mm  ->  {pixels_per_mm[0]:.2f}px/mm"
             elif pixels_per_mm[0]:
                 millimeters = dist_px / pixels_per_mm[0]
                 line = f"  {dist_px:.1f}px  ->  {millimeters:.2f} mm"
+                if photo_number[0] == 1 and pair == 1:
+                    second_photo_reference_mm[0] = millimeters
+                    line += "  (reference for photo 2)"
             else:
                 line = f"  {dist_px:.1f}px  (calibrate yellow first)"
             ticker.append((line, color))
@@ -750,6 +803,13 @@ def mouse_callback(event, x, y, flags, _param):
 
         click_ticker_counts.append(ticker_lines_added)
         cv2.imshow(WINDOW_NAME, draw_frame(dw, dh))
+        if (
+            pt_in_pair == 2
+            and photo_number[0] == 1
+            and pair == 1
+            and second_photo_reference_mm[0] is not None
+        ):
+            load_second_photo()
 
 # --- Init ---
 cv2.namedWindow(WINDOW_NAME, cv2.WINDOW_NORMAL)
@@ -759,8 +819,9 @@ cv2.resizeWindow(WINDOW_NAME, init_w, init_h)
 cv2.imshow(WINDOW_NAME, draw_frame(init_w, init_h))
 cv2.setMouseCallback(WINDOW_NAME, mouse_callback)
 
-print(f"Showing: {image_path}  ({w}x{h})")
-print("Scroll: zoom  |  Right-drag: pan  |  R: reset zoom  |  Z: undo click  |  S: save undistorted  |  W: white balance  |  C: CLAHE  |  H: rectify  |  P: re-pick corners  |  Left-click: measure")
+print(f"Showing first photo: {image_path}  ({w}x{h})")
+print(f"Photo 1: pair 1 = {FIRST_REFERENCE_MM:.3f} mm; pair 2 becomes photo 2's reference.")
+print("Scroll: zoom  |  Right-drag: pan  |  R: reset zoom  |  Z: undo click  |  N: load second photo  |  S: save undistorted  |  W: white balance  |  C: CLAHE  |  H: rectify  |  P: re-pick corners  |  Left-click: measure")
 
 prev_size = (init_w, init_h)
 while True:
@@ -770,6 +831,8 @@ while True:
         cv2.imshow(WINDOW_NAME, draw_frame(*get_display_size()))
     elif key == ord('z'):        # undo last measurement click
         undo_last_click()
+    elif key == ord('n'):        # load/retry the second photo
+        load_second_photo()
     elif key == ord('s'):        # save undistorted image
         save_undistorted_image()
     elif key == ord('w'):        # toggle gray-world white balance

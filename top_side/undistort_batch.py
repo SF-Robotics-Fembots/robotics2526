@@ -2,8 +2,7 @@
 Batch image undistortion.
 
 Select one or more images, undistort them with the saved camera calibration,
-and write the corrected images out. The full frame is preserved (black appears
-around the curved edges rather than cropping any pixels away).
+and write the corrected images out.
 """
 
 import cv2
@@ -59,10 +58,10 @@ def read_calibration_csv(csv_path):
 
 def undistort_image(img, camera_matrix, distortion_coefficients):
     h, w = img.shape[:2]
-    # alpha=1 keeps every source pixel; the curved edges show black instead of
-    # cropping. No ROI crop, so no content is lost.
+    # Match measurementbasics.py: alpha=0 keeps this calibration centered.
+    # alpha=1 pushes the corrected view off to the right for these images.
     new_camera_matrix, _roi = cv2.getOptimalNewCameraMatrix(
-        camera_matrix, distortion_coefficients, (w, h), 1, (w, h)
+        camera_matrix, distortion_coefficients, (w, h), 0, (w, h)
     )
     return cv2.undistort(img, camera_matrix, distortion_coefficients, None, new_camera_matrix)
 

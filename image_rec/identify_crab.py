@@ -92,7 +92,7 @@ def detect_and_identify_crabs(image_path, output_path="output.jpg"):
         label = f"{pretty_label(class_name)} ({confidence:.2f})"
         if class_name in DRAWN_CLASSES:
             color = CLASS_COLORS.get(class_name, (255, 255, 255))
-            cv2.rectangle(img, (x1, y1), (x2, y2), color, 2)
+            cv2.rectangle(img, (x1, y1), (x2, y2), color, 4)
 
             text_y = y1 - 10 if y1 > 30 else y2 + 20
             cv2.putText(
@@ -110,11 +110,11 @@ def detect_and_identify_crabs(image_path, output_path="output.jpg"):
     cv2.putText(
         img,
         f"Green Crabs: {green_count}",
-        (20, 40),
+        (20, 80),
         cv2.FONT_HERSHEY_SIMPLEX,
-        1.0,
+        3.0,
         (0, 255, 0),
-        3,
+        5,
     )
 
     cv2.imwrite(output_path, img)
