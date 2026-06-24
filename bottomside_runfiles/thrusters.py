@@ -343,7 +343,7 @@ def main(ip_server):
 				oldVertThrusterVals[vNum] = int((calcVertical(v_speed, vNum, vDirArray)))
 
 			clockArray = [1, -1, 1, 1]    #1 for CW, -1 for CCW
-			clockVertArray = [-1, -1] #both CCW 6/24/26
+			clockVertArray = [1, 1] 
 
 			thrusterVals = [0, 0, 0, 0]
 			vertThrusterVals = [0, 0]
