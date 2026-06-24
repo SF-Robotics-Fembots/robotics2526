@@ -26,6 +26,14 @@ def main(ip_server):
 		{"positive": 1515, "negative": 1465},  # T5
 		{"positive": 1560, "negative": 1450},  # T6
 	]
+	thruster_pwm_limits = [
+		None,          # T1
+		None,          # T2
+		None,          # T3
+		None,          # T4
+		(1250, 1750),  # T5
+		(1250, 1750),  # T6
+	]
 	dynamic_change = 999
 
 	#MODE1_REG = 0x00
@@ -85,6 +93,12 @@ def main(ip_server):
 		if pwm > neutral_pwm:
 			return pwm + (thresholds["positive"] - neutral_pwm)
 		return pwm - (neutral_pwm - thresholds["negative"])
+
+	def clamp_pwm(pwm, limits):
+		if limits is None:
+			return pwm
+		min_pwm, max_pwm = limits
+		return max(min_pwm, min(max_pwm, pwm))
 
 	# def test_sequence(ip_server):
 	# 	channels = [thrusterChannel1, thrusterChannel2, thrusterChannel3, thrusterChannel4, thrusterChannel5, thrusterChannel6]
@@ -147,7 +161,7 @@ def main(ip_server):
 	thrusterChannel4.duty_cycle = throttlePW
 	time.sleep(0)
 
-	throttle_in = 2200
+	throttle_in = 1750
 	throttlePW = int(throttle_in/10000*65536)
 	thrusterChannel5.duty_cycle = throttlePW
 	time.sleep(0)
@@ -157,7 +171,7 @@ def main(ip_server):
 	thrusterChannel5.duty_cycle = throttlePW
 	time.sleep(0)
 
-	throttle_in = 2200
+	throttle_in = 1750
 	throttlePW = int(throttle_in/10000*65536)
 	thrusterChannel6.duty_cycle = throttlePW
 	time.sleep(0)
@@ -418,6 +432,10 @@ def main(ip_server):
 			compensatedPowerVals = [
 				apply_startup_compensation(val, thruster_startup_pwm[index])
 				for index, val in enumerate(allPowerVals)
+			]
+			compensatedPowerVals = [
+				clamp_pwm(val, thruster_pwm_limits[index])
+				for index, val in enumerate(compensatedPowerVals)
 			]
 
 			# Combine corresponding thruster objects
