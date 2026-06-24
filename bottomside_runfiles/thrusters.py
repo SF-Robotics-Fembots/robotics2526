@@ -405,10 +405,10 @@ def main(ip_server):
 			finalTotal = (finalHorDiff * 4) + (finalVertDiff * 2)
 			print(f"Final Total: {finalTotal}")
 			if (finalTotal != 0):
-				percent = (1250/finalTotal) #2400
+				percent = (1200/finalTotal) #2400
 				print(f"Power Multiplier: {percent}")
 				#finds percent to display how much we are exceeding power use (ex. exceeding power limit by 5%)
-				if (finalTotal > 1250): #was 1950, max 2934
+				if (finalTotal > 1200): #was 1950, max 2934
 					for thruster in range(0, 4):
 						Diff = powerThrusterVals[thruster] - horiz_off_value
 						newDiff = Diff * (percent)
