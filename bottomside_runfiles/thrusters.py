@@ -31,8 +31,8 @@ def main(ip_server):
 		None,          # T2
 		None,          # T3
 		None,          # T4
-		(1000, 2000),  # T5
-		(1000, 2000),  # T6
+		(1100, 1900),  # T5
+		(1100, 1900),  # T6
 	]
 	dynamic_change = 999
 
@@ -161,7 +161,7 @@ def main(ip_server):
 	thrusterChannel4.duty_cycle = throttlePW
 	time.sleep(0)
 
-	throttle_in = 2000
+	throttle_in = 1900
 	throttlePW = int(throttle_in/10000*65536)
 	thrusterChannel5.duty_cycle = throttlePW
 	time.sleep(0)
@@ -171,7 +171,7 @@ def main(ip_server):
 	thrusterChannel5.duty_cycle = throttlePW
 	time.sleep(0)
 
-	throttle_in = 2000
+	throttle_in = 1900
 	throttlePW = int(throttle_in/10000*65536)
 	thrusterChannel6.duty_cycle = throttlePW
 	time.sleep(0)
