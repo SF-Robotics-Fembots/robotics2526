@@ -17,14 +17,14 @@ def main(ip_server):
 	vert_thrust_offset = 0
 	neutral_pwm = 1500
 	max_horizontal_thrust = 50
-	max_vertical_thrust = 60
+	max_vertical_thrust = 50
 	thruster_startup_pwm = [
 		{"positive": 1510, "negative": 1460},  # T1
 		{"positive": 1515, "negative": 1465},  # T2
 		{"positive": 1555, "negative": 1440},  # T3
 		{"positive": 1560, "negative": 1450},  # T4
-		{"positive": 1500, "negative": 1500},  # T5
-		{"positive": 1500, "negative": 1500},  # T6
+		{"positive": 1515, "negative": 1465},  # T5
+		{"positive": 1560, "negative": 1450},  # T6
 	]
 	thruster_pwm_limits = [
 		None,          # T1
@@ -405,10 +405,10 @@ def main(ip_server):
 			finalTotal = (finalHorDiff * 4) + (finalVertDiff * 2)
 			print(f"Final Total: {finalTotal}")
 			if (finalTotal != 0):
-				percent = (1300/finalTotal) #2400
+				percent = (1250/finalTotal) #2400
 				print(f"Power Multiplier: {percent}")
 				#finds percent to display how much we are exceeding power use (ex. exceeding power limit by 5%)
-				if (finalTotal > 1300): #was 1950, max 2934
+				if (finalTotal > 1250): #was 1950, max 2934
 					for thruster in range(0, 4):
 						Diff = powerThrusterVals[thruster] - horiz_off_value
 						newDiff = Diff * (percent)
