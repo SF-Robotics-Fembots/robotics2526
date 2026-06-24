@@ -17,7 +17,7 @@ def main(ip_server):
 	vert_thrust_offset = 0
 	neutral_pwm = 1500
 	max_horizontal_thrust = 50
-	max_vertical_thrust = 50
+	max_vertical_thrust = 40
 	thruster_startup_pwm = [
 		{"positive": 1510, "negative": 1460},  # T1
 		{"positive": 1515, "negative": 1465},  # T2
