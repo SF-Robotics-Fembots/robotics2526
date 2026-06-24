@@ -23,8 +23,8 @@ def main(ip_server):
 		{"positive": 1515, "negative": 1465},  # T2
 		{"positive": 1555, "negative": 1440},  # T3
 		{"positive": 1560, "negative": 1450},  # T4
-		{"positive": 1515, "negative": 1465},  # T5
-		{"positive": 1560, "negative": 1450},  # T6
+		{"positive": 1500, "negative": 1500},  # T5
+		{"positive": 1500, "negative": 1500},  # T6
 	]
 	thruster_pwm_limits = [
 		None,          # T1
