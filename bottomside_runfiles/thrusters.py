@@ -31,7 +31,7 @@ def main(ip_server):
 		None,          # T2
 		None,          # T3
 		None,          # T4
-		(1165 1825),  # T5
+		(1165, 1825),  # T5
 		(1165, 1825),  # T6
 	]
 	dynamic_change = 999
