@@ -20,10 +20,10 @@ def main(ip_server):
 	max_vertical_thrust = 50
 	thruster_startup_pwm = [
 		{"positive": 1510, "negative": 1460},  # T1
-		{"positive": 1515, "negative": 1465},  # T2
-		{"positive": 1555, "negative": 1440},  # T3
-		{"positive": 1560, "negative": 1450},  # T4
-		{"positive": 1515, "negative": 1465},  # T5
+		{"positive": 1510, "negative": 1465},  # T2
+		{"positive": 1555, "negative": 1445},  # T3
+		{"positive": 1560, "negative": 1455},  # T4
+		{"positive": 1560, "negative": 1445},  # T5
 		{"positive": 1560, "negative": 1450},  # T6
 	]
 	thruster_pwm_limits = [
